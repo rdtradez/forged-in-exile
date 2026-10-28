@@ -1,6 +1,6 @@
 /* Forged in Exile service worker: makes the game playable offline.
    Bump VERSION whenever index.html changes so players get the update. */
-const VERSION = "forged-v1";
+const VERSION = "forged-v6";
 const CORE = ["./", "./index.html", "./manifest.webmanifest",
   "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-maskable-512.png", "./icons/apple-touch-icon.png"];
 
