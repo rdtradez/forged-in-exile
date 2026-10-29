@@ -120,6 +120,39 @@ input[type=text]:focus{outline:2px solid var(--ember);outline-offset:1px}
 .chron-sub{margin:2px 0 10px;font-size:13px;font-style:italic;opacity:.7}
 .chron ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:16px;line-height:1.45}
 .chron-sign{margin:12px 0 0;font-family:var(--hand);font-size:20px}
+.cast{display:flex;gap:10px;flex-wrap:wrap}
+.cast figure{margin:0;width:88px;display:flex;flex-direction:column;gap:4px;animation:pop .45s ease-out}
+.cast svg{width:88px;height:auto;display:block;border-radius:2px;box-shadow:0 4px 12px rgba(0,0,0,.45)}
+.cast figcaption{font-family:var(--sys);font-size:10px;letter-spacing:.06em;color:var(--muted);text-align:center;line-height:1.3}
+.seg.mode button{display:flex;flex-direction:column;gap:2px;text-align:left;flex:1 1 200px;padding:12px}
+.seg.mode button b{font-size:16px}
+.seg.mode button small{font-family:var(--sys);font-size:11px;color:var(--muted);line-height:1.45}
+.slot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 0;border-top:1px solid var(--line)}
+.slot.now .slot-info b{color:var(--ember)}
+.slot-info{min-width:0;display:flex;flex-direction:column;gap:2px}
+.slot-info b{font-family:var(--body);font-size:15px;color:var(--paper)}
+.slot-info span{font-size:12px;color:var(--muted)}
+.slot-btns{display:flex;gap:6px}
+.slot-new{display:flex;flex-direction:column;gap:6px;padding-top:10px;border-top:1px solid var(--line)}
+.replay{margin-top:6px}
+@media (prefers-reduced-motion:reduce){.cast figure{animation:none}}
+.maptabs{display:flex;gap:6px;margin-bottom:-6px}
+.guild{border:1px solid var(--ember);background:linear-gradient(180deg,rgba(224,165,74,.10),rgba(224,165,74,.03));border-radius:3px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;animation:pop .5s ease-out}
+.guild-head{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-family:var(--sys);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ember)}
+.guild-head span:last-child{color:var(--muted);letter-spacing:.06em}
+.guild-row{display:grid;grid-template-columns:22px 1fr;gap:8px;align-items:start}
+.guild-row i{font-style:normal;color:var(--ember);font-size:15px;line-height:1.3;text-align:center}
+.guild-row b{display:block;font-weight:600;font-size:16px;line-height:1.35}
+.guild-row small{display:block;font-family:var(--sys);font-size:11px;color:var(--muted);line-height:1.45}
+.guild-row.idle b{color:var(--muted)}
+#toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translate(-50%,140%);width:min(560px,calc(100% - 32px));box-sizing:border-box;
+  background:var(--panel);border:1px solid var(--ember);border-radius:4px;padding:12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.55);
+  display:flex;flex-direction:column;gap:4px;z-index:50;transition:transform .35s ease-out;cursor:pointer;color:var(--paper)}
+#toast.show{transform:translate(-50%,0)}
+#toast b{font-family:var(--sys);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ember)}
+#toast span{font-size:15px;line-height:1.4}
+#toast small{font-family:var(--sys);font-size:10px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){#toast{transition:none}.guild{animation:none}}
 .crew-note{font-size:14px;color:var(--muted);font-style:italic}
 /* stat sheet */
 .sheet{background:var(--panel);border:1px solid var(--rune);border-radius:3px;padding:16px;font-family:var(--sys);font-size:13px;color:var(--rune);box-shadow:0 0 24px rgba(111,211,255,.15)}
@@ -155,7 +188,11 @@ input[type=text]:focus{outline:2px solid var(--ember);outline-offset:1px}
       <button class="ghost" id="btnChapters" type="button" aria-pressed="false">Chapters</button>
       <button class="ghost" id="btnMarks" type="button" aria-pressed="false">Marks</button>
       <button class="ghost" id="btnStats" type="button" aria-pressed="false">Status</button>
-      <button class="ghost" id="btnRestart" type="button">Restart</button>
+      <button class="ghost" id="btnSaves" type="button" aria-pressed="false">Saves</button>
+      <button class="ghost" type="button" onclick="location.href='book2.html'">Book Two</button>
+      <button class="ghost" type="button" onclick="location.href='book3.html'">Book Three</button>
+      <button class="ghost" type="button" onclick="location.href='transfer.html'">Move saves</button>
+      <button class="ghost" id="btnSound" type="button" aria-pressed="false">Sound off</button>
       <button class="ghost" id="btnInstall" type="button" hidden>Install</button>
     </div>
   </header>
@@ -163,6 +200,7 @@ input[type=text]:focus{outline:2px solid var(--ember);outline-offset:1px}
   <div id="codexBox" hidden></div>
   <div id="chaptersBox" hidden></div>
   <div id="marksBox" hidden></div>
+  <div id="savesBox" hidden></div>
   <div id="sheetBox" hidden></div>
   <main id="view" aria-live="polite"></main>
 </div>
@@ -188,6 +226,7 @@ const START = () => ({
   assign:{wood:2, stone:1, farm:1}, lastYield:null, codex:[], newPage:null,
   chapter:1, phase:"week", week:0, pop:83, snap:null, counts:{}, buildsLeft:1, weekReport:null
 });
+var SLOT = 1;
 let S = load() || START();
 
 const PRON = {
@@ -621,6 +660,7 @@ function costOf(id, guild){
   const pr=PROJECTS[id]; const c={...(pr.cost||{})};
   if(F("fen")&&c.timber) c.timber=Math.max(0,c.timber-1);
   if(pr.claim&&F("terrCheap")) for(const k in c) c[k]=Math.max(0,c[k]-1);
+  if(S.mode==="builder") for(const k in c) if(c[k]>0) c[k]+=1;
   return c;
 }
 
@@ -677,7 +717,12 @@ Object.assign(PROJECTS,{
   charterGarden:{ ch:6.5, nq:"dome", name:"Plant the Charter Garden", gain:"Morale +2", cost:{timber:2,coin:1}, fx:{morale:2},
     after:()=>`<p>A small walled garden behind the hall where every citizen may plant one thing. By the end of the summer it is wildly, gloriously overgrown.</p>`}
 });
-const NEWQ = ["engineerSchool","milestoneRoad","stoneYards","mapHouse","waystation","bellTower","seaLocks","floodGates","saelmarHouse","tideMill","sailorsQuarter","saltStore","yourHouse","courthouse","arcade","nursery","freeGates","charterGarden"];
+Object.assign(PROJECTS,{
+  landRoads:{ ch:2, nq:"tower", name:"Join every land to the town with Elder roads", gain:"Food +2, Coin +1, Timber +1, Stone +1 every week", cost:{stone:6,timber:2}, fx:{prosperity:1},
+    req:()=>claims().length>=3 && has("road"), reqText:"Needs the Elder road and three claimed lands",
+    after:()=>`<p>Every land Brackenfold has claimed gets its own paved Elder road to the town gate, crowned and ditched, with a milestone at every mile. Carts from the meadows, the woods and the bluff no longer bog down in spring.</p><p>From the watchtower, the roads look like the spokes of a wheel, and Brackenfold sits at its hub. It stops feeling like a town with lands around it, and starts feeling like one place.</p>`}
+});
+const NEWQ = ["landRoads","engineerSchool","milestoneRoad","stoneYards","mapHouse","waystation","bellTower","seaLocks","floodGates","saelmarHouse","tideMill","sailorsQuarter","saltStore","yourHouse","courthouse","arcade","nursery","freeGates","charterGarden"];
 
 const ORDER = [...TERR_ORDER, "camp","mill","wall","homes","fields","quarry","kiln","archbridge","concrete","crane","road","tiles","tower","smithy","market","gate","ditch","cistern",
   "cottages","hall","guild","granary","terraces","wallTowers","fair","baths","sawmill","forge","glassworks","school","watch","square",
@@ -697,11 +742,11 @@ const JOBS = {
   farm: {name:"Fields", site:()=>has("fields")?"Drained east fields":"Kitchen gardens", per:()=>has("fields")?2:1, out:"food"}
 };
 // every two workers on a job produce "per" units; one alone produces half, rounded down
-const jobYield = j => Math.floor(S.assign[j]*JOBS[j].per()/2);
+const jobYield = j => Math.floor(S.assign[j]*JOBS[j].per()/2*modeMul());
 function workers(){ return 4 + (has("engineerSchool")?1:0) + (F("engineersStay")?3:0) + (has("homes")?1:0) + (F("fen")?1:0) + (has("market")?1:0) + (has("road")?1:0) + (S.stats.morale>=5?1:0)
   + (has("school")?2:0) + (has("library")?1:0) + (has("college")?3:0) + (has("royalCollege")?3:0) + (has("refugeQuarter")?2:0) + Math.max(0,Math.floor((S.pop-83)/8)); }
 const works = () => S.built.length + Math.max(0,(S.counts.cottages||0)-1);
-const housing = () => 90 + terrHousing() + (has("sailorsQuarter")?20:0) + (F("corvaneLands")?20:0) + 15*(S.counts.cottages||0) + (has("refugeeQ")?30:0) + (has("refugeQuarter")?30:0) + (has("aqueduct")?10:0);
+const housing = () => 90 + terrHousing() + 5*upgSum("house") + (has("sailorsQuarter")?20:0) + (F("corvaneLands")?20:0) + 15*(S.counts.cottages||0) + (has("refugeeQ")?30:0) + (has("refugeQuarter")?30:0) + (has("aqueduct")?10:0);
 const perWeek = () => 3;
 const perDay = () => 1 + (F("fen")?1:0);
 const isSeason = () => S.phase==="summer" || S.phase==="winter" || S.phase==="spring";
@@ -719,12 +764,12 @@ function tier(){
   if(works()>=10 && S.pop>=92) return {name:"Village", lvl:1};
   return {name:"Failing Hamlet", lvl:0};
 }
-const foodNeed = () => Math.ceil(S.pop/6);
-const foodMade = () => S.phase==="winter"
+const foodNeed = () => Math.ceil(S.pop/6*modeNeed());
+const foodMade = () => upgSum("food") + (has("landRoads")?2:0) + (S.phase==="winter"
   ? (has("greenhouse")?jobYield("farm")*4:0) + (has("tideMill")?3:0) + (has("saltStore")?2:0) + (has("tGarden")?6:0) + (has("conservatory")?3:0) + (has("mill")?1:0) + (has("granary")?2:0) + (has("smokehouse")?3:0) + (F("thornFate")==="tamed"?4:0)
-  : jobYield("farm")*4 + (has("tideMill")?3:0) + (has("saltStore")?2:0) + (has("tFields")?3:0) + (has("meadowFarms")?2:0) + (has("tSouthHills")?3:0) + (has("tMarrow")?2:0) + (has("marrowMill")?2:0) + (has("tGarden")?6:0) + (has("mill")?2:0) + (has("fields")?2:0) + (has("terraces")?3:0) + (has("granary")?2:0) + (has("orchards")?4:0) + (has("conservatory")?3:0) + (F("thornFate")==="tamed"&&S.chapter>=3?2:0);
-const fuelNeed = () => S.phase==="winter" ? Math.ceil(S.pop/12 * (has("hypoHomes")?0.5:1)) : 0;
-const coinMade = () => Math.floor(S.stats.prosperity/3) + (has("stoneYards")?1:0) + (has("waystation")?2:0) + (has("seaLocks")?2:0) + (has("saelmarHouse")?1:0) + (has("arcade")?2:0) + (F("saelmarTrade")?2:0) + (has("vineyards")?2:0) + (has("hollinMarket")?3:0) + (has("eastWharf")?2:0) + (has("tHollin")?2:0) + (has("fair")?2:0) + (has("glassworks")?2:0) + (has("forge")?1:0) + (F("route")?1:0) + (has("inn")?2:0) + (has("marketHall")?1:0) + (has("assay")?3:0) + (has("viaduct")?2:0) + (has("harbor")?2:0) + (has("sharedFoundry")?2:0);
+  : jobYield("farm")*4 + (has("tideMill")?3:0) + (has("saltStore")?2:0) + (has("tFields")?3:0) + (has("meadowFarms")?2:0) + (has("tSouthHills")?3:0) + (has("tMarrow")?2:0) + (has("marrowMill")?2:0) + (has("tGarden")?6:0) + (has("mill")?2:0) + (has("fields")?2:0) + (has("terraces")?3:0) + (has("granary")?2:0) + (has("orchards")?4:0) + (has("conservatory")?3:0) + (F("thornFate")==="tamed"&&S.chapter>=3?2:0));
+const fuelNeed = () => S.phase==="winter" ? Math.ceil(S.pop/12 * (has("hypoHomes")?0.5:1) * modeNeed()) : 0;
+const coinMade = () => Math.floor(S.stats.prosperity/3) + upgSum("coin") + (has("landRoads")?1:0) + (has("stoneYards")?1:0) + (has("waystation")?2:0) + (has("seaLocks")?2:0) + (has("saelmarHouse")?1:0) + (has("arcade")?2:0) + (F("saelmarTrade")?2:0) + (has("vineyards")?2:0) + (has("hollinMarket")?3:0) + (has("eastWharf")?2:0) + (has("tHollin")?2:0) + (has("fair")?2:0) + (has("glassworks")?2:0) + (has("forge")?1:0) + (F("route")?1:0) + (has("inn")?2:0) + (has("marketHall")?1:0) + (has("assay")?3:0) + (has("viaduct")?2:0) + (has("harbor")?2:0) + (has("sharedFoundry")?2:0);
 /* one summer week: crews work six days, the village eats, grows, earns */
 function weekly(){
   clampAssign();
@@ -734,11 +779,12 @@ function weekly(){
   const net=foodMade()-foodNeed();
   S.stats.food+=net;
   const c=coinMade(); S.stats.coin+=c;
-  lines.push(`Timber +${t} · Stone +${st} · Coin +${c}`);
+  const up=upgSum("prod")+(has("landRoads")?1:0); if(up){ S.stats.timber+=up; S.stats.stone+=up; }
+  lines.push(`Timber +${t+up} · Stone +${st+up} · Coin +${c}`);
   const fuel=fuelNeed();
   if(fuel){ S.stats.timber-=fuel; if(S.stats.timber<0){ S.stats.timber=0; S.stats.morale=Math.max(0,S.stats.morale-2); lines.push(`Firewood ran out · a cold week · Morale −2`); } else lines.push(`Firewood burned: ${fuel} timber${has("hypoHomes")?" (halved by Elder heating)":""}`); }
   let grow=0;
-  if(S.stats.food<0){ S.stats.food=0; S.stats.morale=Math.max(0,S.stats.morale-1); lines.push(`Short rations. Food ran out · Morale −1`); }
+  if(S.stats.food<0){ S.stats.food=0; if(S.mode!=="story"){ S.stats.morale=Math.max(0,S.stats.morale-1); lines.push(`Short rations. Food ran out · Morale −1`); } else lines.push(`Short rations this week. The town shares what it has.`); }
   else {
     lines.push(`Food ${net>=0?"+":""}${net} (made ${foodMade()}, eaten ${foodNeed()})`);
     const room=housing()-S.pop;
@@ -756,7 +802,7 @@ function weekly(){
   S.pop+=grow;
   if(grow) lines.push(`Population +${grow} → ${S.pop}`);
   if(has("guild")){ const g=guildWork(); S.guildBuilt=g;
-    lines.push(g.length ? `Builders' guild finished: ${g.join(" and ")}` : "Builders' guild sat idle · not enough materials for anything"); }
+    lines.push(g.length ? `Builders' guild finished: ${g.join(" · ")}` : "Builders' guild sat idle · not enough materials for anything"); }
   S.newPage=null; if(F("codex_on")) restorePage();
   if(S.newPage) lines.push(`Codex page restored: ${CODEX[S.newPage].name}`);
   S.weekReport=lines.join("<br>");
@@ -782,7 +828,7 @@ function crewPanel(){
       <div class="crew-out" id="y-${j}">+${S.phase==="winter"&&j==="farm"&&!has("greenhouse")?0:jobYield(j)*(isSeason()?(S.phase==="winter"&&j==="stone"&&!has("sledgeRoad")?2:4):1)} ${LABEL[J.out]||"Food"}${isSeason()?"/wk":""}</div>
     </div>`).join("");
   const last = S.lastYield && Object.keys(S.lastYield).length
-    ? `<div class="crew-last">Overnight haul: ${Object.entries(S.lastYield).map(([k,v])=>`+${v} ${LABEL[k]||"Food"}`).join(", ")}</div>` : "";
+    ? `${S.guildNote&&!isSeason()?`<div class="crew-last">${S.guildNote}</div>`:""}<div class="crew-last">Overnight haul: ${Object.entries(S.lastYield).map(([k,v])=>`+${v} ${LABEL[k]||"Food"}`).join(", ")}</div>` : "";
   return `<section class="crews" aria-label="Work crews">
     <div class="crew-head"><span>Work crews</span><span>${free} of ${workers()} villagers idle</span></div>
     ${rows}${last}
@@ -860,7 +906,7 @@ function springPlanText(){
     4:`<p>The days are long and warm. The kiln has not gone cold in a month.</p>`, 5:`<p>Late spring. Swallows nest under the arch bridge.</p>`, 6:`<p>The last week of spring.</p>`}[S.week]||"";
   return `${intro}
   ${S.weekReport?sys("LAST WEEK",S.weekReport):""}
-  ${mapSVG()}
+  ${mapPanel()}
   <div class="tierbar"><div><b>${t.name}</b><span>${nextRankText()}</span></div><div class="pips">${[0,1,2,3,4,5,6,7].map(i=>`<i class="${i<=t.lvl?"on":""}"></i>`).join("")}</div></div>
   <div class="res"><span>People <b>${S.pop}/${housing()}</b></span><span>Works <b>${works()}</b></span><span>Timber <b>${S.stats.timber}</b></span><span>Stone <b>${S.stats.stone}</b></span><span>Coin <b>${S.stats.coin}</b></span><span>Food <b>${S.stats.food}</b> <small>(${net>=0?"+":""}${net}/wk)</small></span><span>Defense <b>${S.stats.defense}</b></span><span>Morale <b>${S.stats.morale}</b></span></div>
   ${housing()-S.pop<=2?`<p class="chapter" style="color:var(--ember)">Housing full · build cottages to grow</p>`:""}
@@ -890,7 +936,7 @@ function warPlanText(){
   }[S.day]||"";
   const page = S.newPage ? sys("ELDER CODEX",`[Page Restored: ${CODEX[S.newPage].name.toUpperCase()}]`) : "";
   return `${intro}${page}
-  ${mapSVG()}
+  ${mapPanel()}
   <div class="res"><span>People <b>${S.pop}/${housing()}</b></span><span>Works <b>${works()}</b></span><span>Timber <b>${S.stats.timber}</b></span><span>Stone <b>${S.stats.stone}</b></span><span>Coin <b>${S.stats.coin}</b></span><span>Food <b>${S.stats.food}</b></span><span>Defense <b>${S.stats.defense}</b></span><span>Morale <b>${S.stats.morale}</b></span></div>
   ${crewPanel()}
   <p class="chapter">${S.buildsLeft} project${S.buildsLeft===1?"":"s"} left today · ${6-S.day>0?`${6-S.day} more day${6-S.day>1?"s":""} before the assault`:"the assault comes at dawn"}</p>`;
@@ -911,7 +957,7 @@ function seasonPlanText(){
   const t=tier(), net=foodMade()-foodNeed(), fuel=fuelNeed(), C=SEASON[S.chapter];
   return `<p>${C.intro[S.week]||""}</p>
   ${S.weekReport?sys("LAST WEEK",S.weekReport):""}
-  ${mapSVG()}
+  ${mapPanel()}
   <div class="tierbar"><div><b>${t.name}</b><span>${nextRankText()}</span></div><div class="pips">${[0,1,2,3,4,5,6,7].map(i=>`<i class="${i<=t.lvl?"on":""}"></i>`).join("")}</div></div>
   <div class="res"><span>People <b>${S.pop}/${housing()}</b></span><span>Works <b>${works()}</b></span><span>Timber <b>${S.stats.timber}</b>${fuel?` <small>(−${fuel} fuel/wk)</small>`:""}</span><span>Stone <b>${S.stats.stone}</b></span><span>Coin <b>${S.stats.coin}</b></span><span>Food <b>${S.stats.food}</b> <small>(${net>=0?"+":""}${net}/wk)</small></span><span>Defense <b>${S.stats.defense}</b></span><span>Morale <b>${S.stats.morale}</b></span></div>
   ${housing()-S.pop<=2?`<p class="chapter" style="color:var(--ember)">Housing full · build cottages or a new quarter to grow</p>`:""}
@@ -1072,7 +1118,7 @@ const CHARTER_EVENT = {1:"fc1", 2:"fc2", 3:"fc3", 4:"fc4", 5:"fc5", 6:"fc6"};
 function charterPlanText(){
   const intro={1:"Banners going up on the walls. Everyone in Brackenfold is building something for Charter Day.",2:"The square is full of stalls and arguments.",3:"Your father arrives for the charter, leaning on his cane, refusing help.",4:"The lanterns are going up. The cellar under the hall is very quiet.",5:"Tomorrow, the charter. And the day after that, the trial.",6:"Charter Day."}[S.day]||"";
   return `<p>${intro}</p>
-  ${mapSVG()}
+  ${mapPanel()}
   <div class="res"><span>People <b>${S.pop}/${housing()}</b></span><span>Works <b>${works()}</b></span><span>Timber <b>${S.stats.timber}</b></span><span>Stone <b>${S.stats.stone}</b></span><span>Coin <b>${S.stats.coin}</b></span><span>Food <b>${S.stats.food}</b></span><span>Morale <b>${S.stats.morale}</b></span></div>
   ${F("surgeNext")?sys("KEYSTONE SURGE","Ready · your next project costs nothing"):""}
   ${crewPanel()}
@@ -1174,7 +1220,7 @@ function snowPlanText(){
   }[S.day]||"";
   const page = S.newPage ? sys("ELDER CODEX",`[Page Restored: ${CODEX[S.newPage].name.toUpperCase()}]<br>Elder name: ${CODEX[S.newPage].elder}`) : "";
   return `${intro}${page}
-  ${mapSVG()}
+  ${mapPanel()}
   <div class="res"><span>People <b>${S.pop}/${housing()}</b></span><span>Works <b>${works()}</b></span><span>Timber <b>${S.stats.timber}</b></span><span>Stone <b>${S.stats.stone}</b></span><span>Coin <b>${S.stats.coin}</b></span><span>Food <b>${S.stats.food}</b></span><span>Defense <b>${S.stats.defense}</b></span><span>Morale <b>${S.stats.morale}</b></span></div>
   ${crewPanel()}
   <p class="chapter">${S.buildsLeft} project${S.buildsLeft===1?"":"s"} left today · ${5-S.day>0?`${5-S.day} more day${5-S.day>1?"s":""} before the expedition`:"last day before the expedition"}</p>`;
@@ -1191,7 +1237,7 @@ function winterPlanText(){
   }[S.week]||"";
   return `${intro}
   ${S.weekReport?sys("LAST WEEK",S.weekReport):""}
-  ${mapSVG()}
+  ${mapPanel()}
   <div class="tierbar"><div><b>${t.name}</b><span>${nextRankText()}</span></div><div class="pips">${[0,1,2,3,4,5,6,7].map(i=>`<i class="${i<=t.lvl?"on":""}"></i>`).join("")}</div></div>
   <div class="res"><span>People <b>${S.pop}/${housing()}</b></span><span>Works <b>${works()}</b></span><span>Timber <b>${S.stats.timber}</b> <small>(−${fuel} fuel/wk)</small></span><span>Stone <b>${S.stats.stone}</b></span><span>Coin <b>${S.stats.coin}</b></span><span>Food <b>${S.stats.food}</b> <small>(${net>=0?"+":""}${net}/wk)</small></span><span>Defense <b>${S.stats.defense}</b></span><span>Morale <b>${S.stats.morale}</b></span></div>
   ${S.stats.timber<fuel*2?`<p class="chapter" style="color:var(--danger)">Firewood low · put more crews on lumber, or heat homes the Elder way</p>`:""}
@@ -1229,7 +1275,7 @@ function summerPlanText(){
   const goal = nextRankText();
   return `${intro}
   ${report}
-  ${mapSVG()}
+  ${mapPanel()}
   <div class="tierbar"><div><b>${t.name}</b><span>${goal}</span></div><div class="pips">${[0,1,2,3,4,5,6,7].map(i=>`<i class="${i<=t.lvl?"on":""}"></i>`).join("")}</div></div>
   <div class="res"><span>People <b>${S.pop}/${housing()}</b></span><span>Works <b>${works()}</b></span><span>Timber <b>${S.stats.timber}</b></span><span>Stone <b>${S.stats.stone}</b></span><span>Coin <b>${S.stats.coin}</b></span><span>Food <b>${S.stats.food}</b> <small>(${net>=0?"+":""}${net}/wk)</small></span><span>Defense <b>${S.stats.defense}</b></span><span>Morale <b>${S.stats.morale}</b></span></div>
   ${room<=2?`<p class="chapter" style="color:var(--ember)">Housing full · build cottages to grow</p>`:""}
@@ -1358,16 +1404,16 @@ plan:{ title:()=>isAway()&&S.phase!=="capital" ? `Day ${S.day} · ${AWAY[S.phase
   const page = S.newPage ? sys("ELDER CODEX",`[Page Restored: ${CODEX[S.newPage].name.toUpperCase()}]<br>Elder name: ${CODEX[S.newPage].elder}<br>You dreamed of Aurel again. New project unlocked.`) : "";
   return `${intro}
   ${page}
-  ${mapSVG()}
+  ${mapPanel()}
   <div class="res"><span>Timber <b>${S.stats.timber}</b></span><span>Stone <b>${S.stats.stone}</b></span><span>Coin <b>${S.stats.coin}</b></span><span>Defense <b>${S.stats.defense}</b></span><span>Food <b>${S.stats.food}</b></span><span>Morale <b>${S.stats.morale}</b></span></div>
   ${crewPanel()}
   <p class="chapter">${S.buildsLeft} project${S.buildsLeft===1?"":"s"} left today${perDay()>1?" (Fen is helping)":""} · ${left>0?`${left} more day${left>1?"s":""} after this one`:"final day"}</p>`;
 },
-choices:()=>isAway() ? awayChoices() : ORDER.filter(id=>{ const pr=PROJECTS[id]; if(pr.fate && F("thornFate")!==pr.fate) return false; if(pr.summer&&!(isSeason()||S.chapter>=2)) return false; if(pr.ch&&S.chapter<pr.ch) return false; return pr.repeat ? (S.counts[id]||0)<(val(pr.max)||99) : !has(id); }).map(id=>{
+choices:()=>isAway() ? awayChoices() : buildMenu(ORDER.filter(id=>{ const pr=PROJECTS[id]; if(pr.fate && F("thornFate")!==pr.fate) return false; if(pr.summer&&!(isSeason()||S.chapter>=2)) return false; if(pr.ch&&S.chapter<pr.ch) return false; return pr.repeat ? (S.counts[id]||0)<(val(pr.max)||99) : !has(id); }).map(id=>{
   const pr=PROJECTS[id]; const reqOK=!pr.req||pr.req(); const pay=canPay(costOf(id));
   const lock = !reqOK ? ` · Locked: ${pr.reqText}` : !pay ? " · Not enough materials" : "";
   return {label:(pr.claim?"Territory: ":pr.district?"District: ":"")+pr.name, hint:`${pr.gain} · Cost: ${costText(costOf(id))}${lock}`, req:()=>reqOK&&pay, build:id, cls:pr.claim?"build claim":"build"};
-}).concat([
+})).concat([
   {label:"Keystone Surge", hint:"Your next project costs nothing · once each part of a chapter", req:()=>surgeReady(), surge:true, cls:"build claim", hide:()=>!F("keystone")},
   {label:"Buy timber from passing traders", hint:"Coin −2 → Timber +5 · does not use a project", req:()=>S.stats.coin>=2, trade:{coin:-2, timber:5}, cls:"trade"},
   {label:"Buy cut stone from passing traders", hint:"Coin −3 → Stone +5 · does not use a project", req:()=>S.stats.coin>=3, trade:{coin:-3, stone:5}, cls:"trade"},
@@ -1393,7 +1439,7 @@ codexDream:{ title:"The Inheritance", text:()=>`
 <p>A man in a dusty coat is sitting on a fallen column, drawing in a notebook. He looks up, and he has your eyes.</p>
 <p>${say(`"Ah. So it finally woke for someone,"`)} says Aurel Valcrest. ${say(`"I found this place when I was younger than you. The Elder builders left everything they knew written in the stone, if you have the right magic to read it. My children wanted swords. So I put it in a sword, and I waited."`)}</p>
 ${F("sawRunes")?`<p>${say(`"You read my name on the tang, didn't you? Good. Then you already know what they hid."`)}</p>`:""}
-${sys("SYSTEM","[Hidden Inheritance Unlocked: THE ELDER CODEX]<br>Pages restored: 1 of ${codexTotal()} · Lime and Fire<br>One page restores each night you rest.")}`,
+${sys("SYSTEM",`[Hidden Inheritance Unlocked: THE ELDER CODEX]<br>Pages restored: 1 of ${codexTotal()} · Lime and Fire<br>One page restores each night you rest.`)}`,
 enter(){ if(!knows("lime")){ S.codex.push("lime"); S.newPage=null; } add({codex_on:true}); },
 choices:[
   {label:`"Why hide it? Why not teach everyone?"`, hint:"Lore", fx:{aurelWhy:true}, go:"codexWhy"},
@@ -4170,10 +4216,13 @@ function render(){
   if(S.scene==="create") return renderCreate();
   const sc=SCENES[S.scene];
   const choices=val(sc.choices).filter(c=>!(c.hide&&c.hide()));
+  const body=sc.text();
   view.innerHTML=`<div class="story fade">
     <div class="chapter">Book One · Chapter ${CH_NAME[S.chapter]}${isSeason()?` · Part Two · Week ${Math.min(S.week,seasonLen())}`:S.phase==="expedition"?" · The Thornwood":S.phase==="exam"?" · The Spire":isAway()?` · ${AWAY[S.phase].place} · Day ${S.day}`:S.phase==="war"||S.phase==="charter"?` · Day ${S.day}`:["siege4","dome5","foundry6","storm7","ktest","tide","trial"].includes(S.phase)?" · The Crisis":S.day?` · Day ${Math.min(S.day,6)}`:""}</div>
+    ${castStrip(body)}
+    ${S.scene==="plan"&&!isAway()?guildCard():""}
     <h2>${val(sc.title)}</h2>
-    ${sc.text()}
+    ${body}
     ${/^summary/.test(S.scene)?marksHTML(S.newMarks):""}
     <div class="choices">${choices.map((c,i)=>{
       const ok=!c.req||c.req();
@@ -4181,8 +4230,11 @@ function render(){
     }).join("")}</div></div>`;
   view.querySelectorAll(".choice").forEach(b=>b.onclick=()=>choose(choices[+b.dataset.i]));
   bindCrews();
+  bindMapTabs();
   refreshPanels();
-  window.scrollTo({top:0});
+  if(!S.keepScroll) window.scrollTo({top:0}); S.keepScroll=false;
+  audioOnRender(body);
+  guildToast();
   save();
 }
 
@@ -4208,24 +4260,113 @@ function buildable(){
     if(pr.fate && F("thornFate")!==pr.fate) return false;
     return (!pr.req||pr.req()) && canPay(costOf(id)); });
 }
-/* the builders' guild: picks at random from what it can afford, never the guild itself or the great wonder */
+/* ======================= BUILDING IMPROVEMENTS =======================
+   Every finished building can be improved up to three times.
+   The builders' guild does this when there is nothing new to build. */
+const UPG_CAT = {
+  food:["mill","fields","terraces","granary","orchards","greenhouse","conservatory","smokehouse","tideMill","saltStore","meadowFarms","marrowMill","cistern"],
+  prod:["camp","quarry","sawmill","crane","stoneYards","forge","sharedFoundry","kiln","woodHamlet","bluffRow","sawTown","smithy"],
+  coin:["market","fair","glassworks","inn","arcade","assay","harbor","waystation","marketHall","seaLocks","hollinMarket","eastWharf","vineyards","road"],
+  defense:["wall","gate","tower","ditch","concrete","wallTowers","barbican","bastions","casemates","boom","watch","barracks","floodGates","freeGates","signal","firebreak"],
+  civic:["hall","school","baths","theater","fountains","square","library","college","infirmary","clocktower","domeHall","bellTower","nursery","courthouse","manor","observatory","archivePub"],
+  house:["homes","cottages","refugeeQ","refugeQuarter","gardenQuarter","sailorsQuarter","yourHouse"]
+};
+const UPG_OF = Object.fromEntries(Object.entries(UPG_CAT).flatMap(([cat,ids])=>ids.map(id=>[id,cat])));
+const lvl = id => (S.levels||{})[id]||0;
+const upgSum = cat => UPG_CAT[cat].reduce((t,id)=>t+(has(id)?lvl(id):0),0);
+function upgCost(id){
+  const L=lvl(id), cat=UPG_OF[id];
+  const c = cat==="food" ? {timber:2+L, stone:1+L*2}
+          : cat==="coin" ? {stone:2+L*2, coin:1+L}
+          : cat==="civic"? {timber:2+L*2, coin:1+L}
+          : {timber:2+L*2, stone:2+L*2};
+  if(S.mode==="builder") for(const k in c) c[k]+=1;
+  return c;
+}
+const UPG_WORD = ["","improved","fine","masterwork"];
+function upgradeBuilding(id, free){
+  if(!S.levels) S.levels={};
+  if(!free){ const c=upgCost(id); for(const k in c) S.stats[k]-=c[k]; }
+  S.levels[id]=lvl(id)+1;
+  const cat=UPG_OF[id];
+  if(cat==="defense") add({defense:1});
+  if(cat==="civic") add({morale:1});
+  return `${PROJECTS[id].name.replace(/^(Build|Rebuild|Raise|Open|Found|Pour|Dig|Cut|Fire|Fix|Patch|Repair|Drain|Plant|Lay|Pave|Hold|Drill|Set|Expand|Heat|Copy|Roof|Upgrade|Carve|Give|Annex|Claim|Settle|Terrace|Bring|Resettle|Mount|Forge|Raise) (a |an |the )?/,"")} → ${UPG_WORD[lvl(id)]}`;
+}
+function upgradable(){ return Object.keys(UPG_OF).filter(id=>has(id) && lvl(id)<3); }
+const costTotal = c => Object.values(c).reduce((a,b)=>a+b,0);
+
+/* the guild: new works first, then improvements, then housing, and never idle two weeks running */
+const UPG_FX = {food:"Food +1 every week", prod:"Timber +1 and Stone +1 every week", coin:"Coin +1 every week", defense:"Defense +1", civic:"Morale +1", house:"Room for 5 more people"};
 function guildWork(){
-  const out=[]; const n = has("college") ? 2 : 1;
+  const out=[], ent=[]; const n = has("royalCollege") ? 3 : has("college") ? 2 : 1;
   for(let i=0;i<n;i++){
     const pool=buildable().filter(id=>id!=="guild"&&id!=="domeHall"&&!PROJECTS[id].claim);
-    if(!pool.length){
-      // nothing new to build: the guild puts up another cottage row, if the stores allow
-      if(canPay(costOf("cottages",true))){ buildProject("cottages",true); out.push("another cottage row"); continue; }
-      break;
+    if(pool.length){
+      // prefer the cheaper works so the guild keeps busy, with a little randomness
+      pool.sort((a,b)=>costTotal(costOf(a,true))-costTotal(costOf(b,true)));
+      const id=pool[Math.floor(Math.random()*Math.min(3,pool.length))];
+      buildProject(id,true); out.push(PROJECTS[id].name); ent.push({kind:"new", what:PROJECTS[id].name, fx:PROJECTS[id].gain}); continue;
     }
-    const id=pool[Math.floor(Math.random()*pool.length)];
-    buildProject(id,true); out.push(PROJECTS[id].name);
+    const ups=upgradable().filter(id=>canPay(upgCost(id)));
+    if(ups.length){
+      ups.sort((a,b)=>costTotal(upgCost(a))-costTotal(upgCost(b)));
+      const uid=ups[Math.floor(Math.random()*Math.min(4,ups.length))]; const txt=upgradeBuilding(uid); out.push(txt); ent.push({kind:"up", what:"Improved: "+txt, fx:UPG_FX[UPG_OF[uid]]}); continue;
+    }
+    if(canPay(costOf("cottages",true))){ buildProject("cottages",true); out.push("another cottage row"); ent.push({kind:"house", what:"Built another cottage row", fx:"Housing +15, Morale +1"}); continue; }
+    break;
   }
+  if(!out.length && (S.flags.guildIdle||0)>=1 && upgradable().length){
+    // a second idle week: the guild makes do with salvaged materials
+    const id=upgradable()[Math.floor(Math.random()*upgradable().length)];
+    const txt=upgradeBuilding(id,true); out.push(txt+" (with salvaged materials)"); ent.push({kind:"up", what:"Improved with salvaged materials: "+txt, fx:UPG_FX[UPG_OF[id]]});
+  }
+  S.flags.guildIdle = out.length ? 0 : (S.flags.guildIdle||0)+1;
+  if(!ent.length) ent.push({kind:"idle", what:"Sat idle", fx:"The stores were too low for anything. If it happens again, they will make do with salvaged materials."});
+  // remember it, so the build screen can announce it
+  const when = isSeason() ? `${SEASON[S.chapter]?SEASON[S.chapter].name:({summer:"Summer",winter:"Winter",spring:"Spring"})[S.phase]} week ${S.week}` : `Day ${S.day}`;
+  S.guildLast={when, ent}; S.guildSeen=false;
+  S.guildHistory=[{when:`Ch. ${CH_NAME[S.chapter]} · ${when}`, ent}].concat(S.guildHistory||[]).slice(0,10);
   return out;
 }
 
+/* ======================= GUILD ANNOUNCEMENTS ======================= */
+const GICON = {new:"⌂", up:"▲", house:"⌂", idle:"…"};
+function guildCard(){
+  const g=S.guildLast; if(!has("guild")||!g) return "";
+  return `<section class="guild" aria-label="Builders' guild report">
+    <div class="guild-head"><span>Builders' Guild</span><span>${g.when}</span></div>
+    ${g.ent.map(e=>`<div class="guild-row ${e.kind}"><i aria-hidden="true">${GICON[e.kind]}</i><div><b>${e.what}</b><small>${e.fx}</small></div></div>`).join("")}
+  </section>`;
+}
+let toastTimer=null;
+function guildToast(){
+  const g=S.guildLast; if(!g || S.guildSeen || S.scene!=="plan" || isAway()) return;
+  S.guildSeen=true;
+  let t=document.getElementById("toast");
+  if(!t){ t=document.createElement("div"); t.id="toast"; t.setAttribute("role","status"); document.body.appendChild(t); }
+  const idle = g.ent.length===1 && g.ent[0].kind==="idle";
+  t.innerHTML=`<b>${idle?"The Builders' Guild sat idle":"The Builders' Guild finished"}</b>${g.ent.filter(e=>e.kind!=="idle").map(e=>`<span>${GICON[e.kind]} ${e.what}</span>`).join("")}<small>Tap to close</small>`;
+  t.className="show"; t.onclick=()=>{ t.className=""; };
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>{ t.className=""; }, 6500);
+  if(!idle) sfx("build");
+}
+
+/* ======================= TOWN / LANDS TABS ON BUILD SCREENS ======================= */
+function mapPanel(){
+  if(!claims().length) return mapSVG();
+  const t=S.mapTab||"town";
+  return `<div class="maptabs" role="group" aria-label="Map view">
+    <button type="button" class="ghost" data-maptab="town" aria-pressed="${t==="town"}">Town</button>
+    <button type="button" class="ghost" data-maptab="lands" aria-pressed="${t==="lands"}">Lands</button></div>
+    ${t==="lands"?regionSVG():mapSVG()}`;
+}
+function bindMapTabs(){
+  document.querySelectorAll("[data-maptab]").forEach(b=>b.onclick=()=>{ S.mapTab=b.dataset.maptab; S.keepScroll=true; render(); });
+}
+
 function choose(c){
-  if(c.restart){ S=START(); return render(); }
+  if(c.restart){ const m=S.mode; S=START(); S.mode=m; Object.keys(CH_OPEN).forEach(id=>lsDel(cpKey(SLOT,id))); return render(); }
   S.rankMsg="";
   S.surgeMsg="";
   if(c.build){
@@ -4237,8 +4378,9 @@ function choose(c){
     const A=curActs()[c.act]; add({["n_"+c.act]:1}); if(A.fx) add(val(A.fx)); S.lastAct=c.act; S.actsLeft--;
     S.scene="actDone"; return render();
   }
-  if(c.surge){ S.flags.surgeNext=true; S.flags.surgeKey=surgeKey(); return render(); }
-  if(c.trade){ add(c.trade); S.rankMsg=""; return render(); }
+  if(c.toggleLocked){ S.showLocked=!S.showLocked; S.keepScroll=true; return render(); }
+  if(c.surge){ S.flags.surgeNext=true; S.flags.surgeKey=surgeKey(); S.keepScroll=true; return render(); }
+  if(c.trade){ add(c.trade); S.rankMsg=""; S.keepScroll=true; return render(); }
   if(c.skip){ S.buildsLeft=0; c={go:"event"}; }
   if(c.fx) add(c.fx);
   let go=c.go;
@@ -4249,7 +4391,8 @@ function choose(c){
     weekly(); S.week++; S.buildsLeft=perWeek();
     go = S.chapter>=4 ? (S.week>SEASON[S.chapter].len ? SEASON[S.chapter].end : "plan") : S.phase==="spring" ? (S.week>6 ? "fatherArrives" : "plan") : S.phase==="winter" ? (S.week>6 ? "magister" : "plan") : (F("riderSeen") || S.week>8 ? "collector" : "plan");
   }
-  if(go==="nextday"){ produce(); S.newPage=null; if(F("codex_on")) restorePage(); S.day++; S.buildsLeft=perDay(); S.actsLeft=2; go="plan"; }
+  if(go==="nextday"){ produce(); S.guildNote=""; if(has("guild") && S.day%2===1){ const g=guildWork(); S.guildNote = g.length ? `Builders' guild finished: ${g.join(" · ")}` : "Builders' guild sat idle · the stores are empty"; } S.newPage=null; if(F("codex_on")) restorePage(); S.day++; S.buildsLeft=perDay(); S.actsLeft=2; go="plan"; }
+  if(OPEN_CH[go]!==undefined && go!=="ceremony") saveCheckpoint(OPEN_CH[go]);
   S.scene=go;
   const sc=SCENES[S.scene];
   if(sc&&sc.enter) sc.enter();
@@ -4269,16 +4412,26 @@ function renderCreate(){
         <button type="button" data-p="she" aria-pressed="false">She / her</button>
         <button type="button" data-p="they" aria-pressed="false">They / them</button>
       </div></div>
+    <div class="field"><label id="mlabel">How do you want to play?</label>
+      <div class="seg mode" role="group" aria-labelledby="mlabel">
+        <button type="button" data-m="story" aria-pressed="false"><b>Story</b><small>Relaxed. Plenty of materials, the town never goes hungry. For the story first.</small></button>
+        <button type="button" data-m="builder" aria-pressed="false"><b>Builder</b><small>Tight. Costs more, crews gather less, food and fuel run short. Plan every week.</small></button>
+      </div></div>
+    <p class="chapter">Saving to slot ${SLOT} · change slots under Saves</p>
     <button class="primary" id="begin" type="button">Begin</button>
     <p id="err" class="chapter" hidden>Enter a name and choose how to be addressed.</p>
   </div>`;
-  const segs=view.querySelectorAll(".seg button");
+  const segs=view.querySelectorAll(".seg:not(.mode) button");
   segs.forEach(b=>{ if(b.dataset.p===S.p) b.setAttribute("aria-pressed","true");
     b.onclick=()=>{ S.p=b.dataset.p; segs.forEach(x=>x.setAttribute("aria-pressed",x===b)); }; });
+  if(!S.mode) S.mode="story";
+  const msegs=view.querySelectorAll(".seg.mode button");
+  msegs.forEach(b=>{ b.setAttribute("aria-pressed", b.dataset.m===S.mode);
+    b.onclick=()=>{ S.mode=b.dataset.m; msegs.forEach(x=>x.setAttribute("aria-pressed",x===b)); }; });
   document.getElementById("begin").onclick=()=>{
     const v=document.getElementById("nm").value.trim();
     if(!v||!S.p){ document.getElementById("err").hidden=false; return; }
-    S.name=v; S.scene="ceremony"; render();
+    S.name=v; S.scene="ceremony"; if(S.mode==="story") add({craft:1, defense:1}); saveCheckpoint(1); render();
   };
 }
 
@@ -4455,6 +4608,16 @@ function mapSVG(opts={}){
   </svg></div>`;
 }
 
+/* ---------- build menu: show what you can build now; fold the rest behind one button ---------- */
+function buildMenu(list){
+  const ready=list.filter(c=>c.req()), locked=list.filter(c=>!c.req());
+  const out=ready.slice();
+  if(!ready.length) out.push({label:"Nothing you can afford right now", hint:"Assign more crews, trade below, or rest and let the stores fill", req:()=>false, cls:"build"});
+  if(locked.length) out.push({label:S.showLocked?`Hide the ${locked.length} projects you can't build yet`:`Show ${locked.length} projects you can't build yet`, hint:"Locked by materials or by requirements", toggleLocked:true, cls:"trade"});
+  if(S.showLocked) out.push(...locked);
+  return out;
+}
+
 /* ---------- the New Quarter: buildings from chapters five to nine, in a band under the town ---------- */
 const nqBuilt = () => NEWQ.filter(id=>has(id));
 const nqH = () => { const n=nqBuilt().length; return n ? 262 + 34 + Math.ceil(n/7)*44 + 14 : 262; };
@@ -4481,8 +4644,8 @@ const REGIONS = {
   tGarden:{x:186,y:40, rx:36,ry:17, name:"Garden Quarter"},
   tDeadwood:{x:186,y:40, rx:36,ry:17, name:"Deadwood Reach"},
   tWarded:{x:186,y:40, rx:36,ry:17, name:"Warded Wood"},
-  tBluff:{x:262,y:196, rx:24,ry:17, name:"River Bluff"},
-  tSouthHills:{x:176,y:240, rx:44,ry:19, name:"South Hills"},
+  tBluff:{x:268,y:210, rx:22,ry:15, name:"River Bluff"},
+  tSouthHills:{x:168,y:252, rx:42,ry:16, name:"South Hills"},
   tMarrow:{x:50,y:146, rx:30,ry:19, name:"Marrow Ford"},
   tHollin:{x:48,y:40, rx:32,ry:18, name:"Hollin Cross"},
   tEastBank:{x:348,y:112, rx:32,ry:21, name:"East Bank"},
@@ -4503,42 +4666,118 @@ function hullOf(pts){
   up.pop(); lo.pop(); return lo.concat(up);
 }
 function regionSVG(){
-  const id="rough"+(mapN++);
-  const ink="var(--sk-ink)", gh="var(--sk-ghost)", water="var(--sk-water)", wash="var(--sk-wash)";
-  const T={x:200,y:150}, r=16+tier().lvl*3;
-  const owned=Object.keys(REGIONS).filter(k=>has(k));
-  // border: a hull around the town and every claimed land
-  const pts=[]; const ring=(cx,cy,rx,ry)=>{ for(let a=0;a<12;a++){ const t=a*Math.PI/6; pts.push([cx+rx*Math.cos(t), cy+ry*Math.sin(t)]); } };
-  ring(T.x,T.y,r+14,r+10); owned.forEach(k=>{ const R=REGIONS[k]; ring(R.x,R.y,R.rx+6,R.ry+6); });
-  const H=hullOf(pts).map(([x,y])=>[Math.max(3,Math.min(397,x)),Math.max(3,Math.min(277,y))]);
-  const border=`<path d="M${H.map(p=>p.map(v=>v.toFixed(1)).join(",")).join(" L")} Z" fill="${wash}" fill-opacity=".08" stroke="${ink}" stroke-width="1.8" stroke-dasharray="7 4" stroke-linejoin="round"/>`;
-  const river=`<path d="M306,0 C286,70 320,140 298,190 S290,250 302,280" fill="none" stroke="${water}" stroke-width="10" opacity=".5"/><path d="M302,0 C282,70 316,140 294,190 S286,250 298,280" fill="none" stroke="${ink}" stroke-width=".7"/>`;
+  const uid="r"+(mapN++);
+  const ink="var(--sk-ink)", gh="var(--sk-ghost)", water="var(--sk-water)", wash="var(--sk-wash)", paper="var(--sk-paper)";
+  const rnd = i => { const x=Math.sin(i*12.9898+78.233)*43758.5453; return x-Math.floor(x); };
+  const T={x:200,y:150};
+  const r = Math.min(36, 16 + Math.max(0,S.pop-80)/11);              // the town grows on the map as it grows in people
+  const owned = Object.keys(REGIONS).filter(k=>has(k));
+  const paved = has("road"), joined = has("landRoads");
+
+  /* ---- terrain ---- */
+  const riverX = y => 302 + 14*Math.sin(y/42) - (y>190?4:0);
+  const riverPts = Array.from({length:15},(_,i)=>{ const y=i*20; return `${riverX(y).toFixed(1)},${y}`; });
+  const river = `<path d="M${riverPts.join(" L")}" fill="none" stroke="${water}" stroke-width="11" stroke-linecap="round" opacity=".5"/>
+    <path d="M${riverPts.join(" L")}" fill="none" stroke="${ink}" stroke-width=".7"/>`;
   const fate=F("thornFate");
-  const woods=Array.from({length:22},(_,i)=>{ const x=72+i*10, y=12+(i%3)*10; const thorny=S.chapter<2||!fate||fate==="sealed";
-    return `<path d="M${x},${y+8} l4,-9 l4,9 z" fill="none" stroke="${thorny&&!has("tGarden")?"#5b3b2a":gh}" stroke-width=".9"/>`; }).join("");
-  const hills=`<path d="M110,262 q20,-14 40,0 q20,-14 40,0 q20,-14 40,0" fill="none" stroke="${gh}"/><path d="M8,270 q20,-10 40,0" fill="none" stroke="${gh}"/>`;
-  const road=`<path d="M0,160 Q100,150 ${T.x-r},${T.y}" fill="none" stroke="${gh}" stroke-width="1.2" stroke-dasharray="3 3"/>`;
-  const kastrel=S.chapter>=4?`<text x="336" y="274" font-size="12" fill="${gh}">Kastrel →</text>`:"";
-  const glyph=(g,x,y)=>({house:`<path d="M${x-4},${y+3} v-5 l4,-4 l4,4 v5 z" fill="none" stroke="${ink}" stroke-width="1"/>`,
-    tree:`<path d="M${x},${y+4} v-2 M${x-4},${y+2} l4,-8 l4,8 z" fill="none" stroke="${ink}" stroke-width="1"/>`,
-    vine:`<path d="M${x-5},${y} q2,-4 5,0 q3,4 5,0" fill="none" stroke="${ink}" stroke-width="1"/><circle cx="${x}" cy="${y+3}" r="1.5" fill="${ink}"/>`,
-    tower:`<rect x="${x-2.5}" y="${y-6}" width="5" height="10" fill="none" stroke="${ink}" stroke-width="1"/>`,
-    coin:`<circle cx="${x}" cy="${y}" r="3.5" fill="none" stroke="${ink}" stroke-width="1"/>`,
-    dome:`<path d="M${x-5},${y+3} a5,5 0 0 1 10,0 z" fill="none" stroke="${ink}" stroke-width="1"/>`})[g];
-  const regions=Object.entries(REGIONS).filter(([k])=>regionShown(k)).map(([k,R])=>{
-    const own=has(k);
-    const dist=TERR_ORDER.filter(d=>PROJECTS[d].district===k&&has(d)).map((d,i)=>glyph(PROJECTS[d].glyph, R.x-14+i*14, R.y+6)).join("");
-    const link=own?`<path d="M${T.x},${T.y} L${R.x},${R.y}" stroke="${ink}" stroke-width=".8" stroke-dasharray="1 3" fill="none"/>`:"";
-    return `${link}<ellipse cx="${R.x}" cy="${R.y}" rx="${R.rx}" ry="${R.ry}" fill="${own?wash:"none"}" fill-opacity="${own?.28:0}" stroke="${own?ink:gh}" stroke-width="${own?1.4:1}" ${own?"":'stroke-dasharray="4 3"'}/>
-      ${dist}<text x="${R.x}" y="${R.y-(own?R.ry+3:2)}" text-anchor="middle" font-size="${own?14:12}" ${own?"":`fill="${gh}"`}>${R.name}${own?"":" ?"}</text>`;
+  const woods = Array.from({length:30},(_,i)=>{ const x=58+i*8.2+rnd(i)*4, y=8+(i%4)*8+rnd(i+40)*4;
+    const thorny=(S.chapter<2||!fate||fate==="sealed")&&!has("tGarden");
+    return `<path d="M${x},${y+9} l4,-10 l4,10 z" fill="${fate==="destroyed"?"none":"rgba(70,90,50,.18)"}" stroke="${thorny?"#5b3b2a":gh}" stroke-width=".9"/>`; }).join("");
+  const hills = `<path d="M96,272 q22,-16 44,0 q22,-16 44,0 q22,-16 44,0" fill="none" stroke="${gh}"/><path d="M6,276 q18,-10 36,0" fill="none" stroke="${gh}"/>`;
+  const westRoad = `<path d="M0,160 Q90,150 ${T.x-r},${T.y+2}" fill="none" stroke="${paved?ink:gh}" stroke-width="${paved?1.6:1.1}" ${paved?"":'stroke-dasharray="3 3"'}/>
+    <text x="4" y="174" font-size="10" fill="${gh}">to Highcrown</text>`;
+  const far = `${S.chapter>=4?`<text x="338" y="274" font-size="11" fill="${gh}">Kastrel →</text>`:""}${S.chapter>=5.5?`<text x="${riverX(270)-60}" y="276" font-size="10" fill="${gh}">to the sea ↓</text>`:""}`;
+
+  /* ---- roads from the town to every land, with suburbs along them ---- */
+  const roads = owned.map((k,ki)=>{ const R=REGIONS[k];
+    const ang=Math.atan2(R.y-T.y,R.x-T.x), sx=T.x+Math.cos(ang)*r, sy=T.y+Math.sin(ang)*r;
+    const mx=(sx+R.x)/2+(rnd(ki+7)-.5)*18, my=(sy+R.y)/2+(rnd(ki+9)-.5)*18;
+    const d=`M${sx.toFixed(1)},${sy.toFixed(1)} Q${mx.toFixed(1)},${my.toFixed(1)} ${R.x},${R.y}`;
+    let line = paved||joined
+      ? `<path d="${d}" fill="none" stroke="${ink}" stroke-width="${joined?3.2:2.4}"/><path d="${d}" fill="none" stroke="${paper}" stroke-width="${joined?1.6:1.1}"/>`
+      : `<path d="${d}" fill="none" stroke="${ink}" stroke-width="1" stroke-dasharray="3 3"/>`;
+    // a bridge where the road crosses the river
+    if((R.x-305)*(sx-305)<0){ const t=(305-sx)/(R.x-sx), by=sy+(R.y-sy)*t + (my-(sy+R.y)/2)*2*t*(1-t);
+      line += `<rect x="${riverX(by)-9}" y="${by-3}" width="18" height="6" fill="${paper}" stroke="${ink}" stroke-width="1"/>`; }
+    // suburbs: houses spill out along the road as the town grows
+    const n=Math.min(5, Math.floor((S.pop-90)/45)+1);
+    for(let j=1;j<=n;j++){ const t=.12+j*.09, x=(1-t)*(1-t)*sx+2*(1-t)*t*mx+t*t*R.x, y=(1-t)*(1-t)*sy+2*(1-t)*t*my+t*t*R.y, side=j%2?5:-5;
+      line += `<path d="M${(x+side*Math.sin(ang)-2.5).toFixed(1)},${(y-side*Math.cos(ang)+2).toFixed(1)} l2.5,-3 l2.5,3 z" fill="${has("tiles")?wash:"none"}" fill-opacity=".6" stroke="${ink}" stroke-width=".8"/>`; }
+    return line; }).join("");
+
+  /* ---- each land, drawn as what it has become ---- */
+  const tex = (k,R) => {
+    const house=(x,y)=>`<path d="M${x-3},${y+2} v-3 l3,-3 l3,3 v3 z" fill="${has("tiles")?wash:paper}" fill-opacity=".7" stroke="${ink}" stroke-width=".9"/>`;
+    const tree=(x,y)=>`<path d="M${x},${y+3} v2 M${x-3},${y+3} l3,-7 l3,7 z" fill="rgba(70,90,50,.25)" stroke="${ink}" stroke-width=".8"/>`;
+    const out=[];
+    if(k==="tFields"){ for(let i=-4;i<=4;i++) out.push(`<path d="M${R.x-40},${R.y+i*4} q40,-3 80,0" stroke="${ink}" stroke-width=".6" fill="none" opacity=".7"/>`);
+      if(has("meadowFarms")) [[-16,-6],[10,4],[22,-8]].forEach(([dx,dy])=>out.push(house(R.x+dx,R.y+dy))); }
+    if(k==="tWoodEdge"){ for(let i=0;i<9;i++) out.push(tree(R.x-24+i*6, R.y-8+(i%3)*6));
+      out.push(`<ellipse cx="${R.x+8}" cy="${R.y+4}" rx="9" ry="5" fill="${paper}" stroke="none"/>`);
+      if(has("woodHamlet")) [[4,4],[12,6]].forEach(([dx,dy])=>out.push(house(R.x+dx,R.y+dy))); }
+    if(k==="tBluff"){ for(let i=0;i<6;i++) out.push(`<path d="M${R.x-20+i*7},${R.y+12} l3,-14" stroke="${ink}" stroke-width=".8"/>`);
+      out.push(`<path d="M${R.x-16},${R.y-2} h10 v6 h10 v6" fill="none" stroke="${ink}" stroke-width="1.1"/>`);
+      if(has("bluffRow")) [[8,-6],[15,-4]].forEach(([dx,dy])=>out.push(house(R.x+dx,R.y+dy))); }
+    if(k==="tSouthHills"){ for(let i=0;i<4;i++) out.push(`<path d="M${R.x-38+i*4},${R.y+8-i*5} q${38-i*4},-5 ${76-i*8},0" stroke="${ink}" stroke-width=".8" fill="none"/>`);
+      if(has("vineyards")) for(let i=0;i<12;i++) out.push(`<circle cx="${R.x-22+i*4}" cy="${R.y+((i%3)-1)*5}" r="1.1" fill="#6a3a5a"/>`); }
+    if(k==="tMarrow"){ out.push(`<circle cx="${R.x}" cy="${R.y}" r="12" fill="${paper}" stroke="${ink}" stroke-width="1.3"/>`);
+      [[-5,-3],[4,-4],[-1,4],[6,4]].forEach(([dx,dy])=>out.push(house(R.x+dx,R.y+dy)));
+      if(has("marrowMill")) out.push(`<circle cx="${R.x+15}" cy="${R.y+6}" r="4" fill="none" stroke="${ink}"/><path d="M${R.x+11},${R.y+6} h8 M${R.x+15},${R.y+2} v8" stroke="${ink}" stroke-width=".8"/>`); }
+    if(k==="tGarden"){ out.push(`<circle cx="${R.x}" cy="${R.y}" r="15" fill="${wash}" opacity=".25"/><path d="M${R.x-12},${R.y+5} a12,12 0 0 1 24,0 z" fill="rgba(140,200,170,.45)" stroke="${ink}" stroke-width="1.2"/>`);
+      for(let i=0;i<6;i++) out.push(`<circle cx="${R.x-30+i*12}" cy="${R.y+10-(i%2)*3}" r="3" fill="rgba(90,140,70,.35)" stroke="${ink}" stroke-width=".7"/>`);
+      if(has("gardenQuarter")) [[-22,-4],[20,-5],[-14,-10],[14,-11]].forEach(([dx,dy])=>out.push(house(R.x+dx,R.y+dy)));
+      if(has("keeperHall")) out.push(`<rect x="${R.x+24}" y="${R.y-9}" width="5" height="10" fill="${paper}" stroke="${ink}"/>`);
+      // the wall arm that reaches out to bring the Garden inside the city
+      out.push(`<path d="M${T.x-6},${T.y-r} Q${(T.x+R.x)/2-14},${(T.y+R.y)/2} ${R.x-14},${R.y+14} M${T.x+6},${T.y-r} Q${(T.x+R.x)/2+14},${(T.y+R.y)/2} ${R.x+14},${R.y+14}" fill="none" stroke="${ink}" stroke-width="1.6"/>`); }
+    if(k==="tDeadwood"){ for(let i=0;i<9;i++) out.push(`<path d="M${R.x-26+i*6.5},${R.y+6} v-10 l-2,-3 m2,3 l2,-3" stroke="${gh}" stroke-width=".9" fill="none"/>`);
+      if(has("sawTown")) [[-6,6],[4,8]].forEach(([dx,dy])=>out.push(house(R.x+dx,R.y+dy))); }
+    if(k==="tWarded"){ out.push(`<path d="M${R.x-34},${R.y+12} Q${R.x},${R.y-6} ${R.x+34},${R.y+12}" fill="none" stroke="${ink}" stroke-width="2.4" opacity=".7"/>`);
+      if(has("wardTowers")) [-24,-8,8,24].forEach(dx=>out.push(`<rect x="${R.x+dx-2}" y="${R.y+2}" width="4" height="7" fill="${paper}" stroke="${ink}"/>`)); }
+    if(k==="tHollin"){ out.push(`<rect x="${R.x-14}" y="${R.y-9}" width="28" height="18" rx="3" fill="${paper}" stroke="${ink}" stroke-width="1.3"/>`);
+      [[-7,-2],[0,-3],[7,-2],[-4,5],[5,5]].forEach(([dx,dy])=>out.push(house(R.x+dx,R.y+dy)));
+      if(has("hollinMarket")) out.push(`<circle cx="${R.x}" cy="${R.y+1}" r="2" fill="${wash}"/>`); }
+    if(k==="tEastBank"){ for(let i=0;i<3;i++) for(let j=0;j<3;j++) out.push(house(R.x-10+i*10, R.y-6+j*7));
+      if(has("eastWharf")) out.push(`<path d="M${R.x-30},${R.y-12} v24" stroke="${ink}" stroke-width="2.4"/>`); }
+    if(k==="tKastrelBank"){ out.push(`<rect x="${R.x-16}" y="${R.y-10}" width="32" height="20" rx="3" fill="${paper}" stroke="${ink}" stroke-width="1.3"/>`);
+      for(let i=0;i<4;i++) out.push(`<path d="M${R.x-11+i*7},${R.y+5} v-6 l3,-5 l3,5 v6" fill="none" stroke="${ink}" stroke-width=".9"/>`);
+      if(has("twinHall")) out.push(`<path d="M${R.x-4},${R.y-6} h8 v-4 h-8 z" fill="${wash}" stroke="${ink}"/>`); }
+    return out.join("");
+  };
+  const lands = Object.entries(REGIONS).filter(([k])=>regionShown(k)).map(([k,R])=>{
+    const own=has(k), cid=`${uid}-${k}`;
+    if(!own) return `<ellipse cx="${R.x}" cy="${R.y}" rx="${R.rx}" ry="${R.ry}" fill="none" stroke="${gh}" stroke-dasharray="4 3"/>
+      <text x="${R.x}" y="${R.y+4}" text-anchor="middle" font-size="11" fill="${gh}">${R.name} ?</text>`;
+    return `<clipPath id="${cid}"><ellipse cx="${R.x}" cy="${R.y}" rx="${R.rx}" ry="${R.ry}"/></clipPath>
+      <ellipse cx="${R.x}" cy="${R.y}" rx="${R.rx}" ry="${R.ry}" fill="${wash}" fill-opacity=".16" stroke="${ink}" stroke-width="1"/>
+      <g clip-path="url(#${cid})">${tex(k,R)}</g>
+      <text x="${R.x}" y="${R.y-R.ry-3}" text-anchor="middle" font-size="13" font-weight="700">${R.name}</text>`;
   }).join("");
-  const town=`<circle cx="${T.x}" cy="${T.y}" r="${r}" fill="var(--sk-paper)" stroke="${ink}" stroke-width="2.2"/>${Array.from({length:6},(_,i)=>{const a=i*Math.PI/3; return `<path d="M${T.x+(r-8)*Math.cos(a)-3},${T.y+(r-8)*Math.sin(a)+2} l3,-4 l3,4 z" fill="none" stroke="${ink}" stroke-width=".9"/>`;}).join("")}<text x="${T.x}" y="${T.y+r+14}" text-anchor="middle" font-size="15" font-weight="700">Brackenfold</text>`;
-  return `<div class="survey" role="img" aria-label="Map of Brackenfold's lands: ${claims().length} claimed">
-  <svg viewBox="0 0 400 280">
-    <defs><filter id="${id}"><feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="2.2"/></filter></defs>
-    <g filter="url(#${id})">${hills}${woods}${river}${road}${border}${regions}${town}${kastrel}</g>
-    <text x="10" y="274" font-size="14">Lands of Brackenfold · ${claims().length} claimed</text>
-    <text x="370" y="20" font-size="14">N ↑</text>
+
+  /* ---- the town itself ---- */
+  const nH=Math.min(70, Math.round(S.pop/6));
+  const houses=Array.from({length:nH},(_,i)=>{ const a=i*2.39996, d=(r-7)*Math.sqrt((i+.6)/nH), x=T.x+Math.cos(a)*d, y=T.y+Math.sin(a)*d;
+    return `<path d="M${(x-2.4).toFixed(1)},${(y+1.6).toFixed(1)} l2.4,-2.8 l2.4,2.8 z" fill="${has("tiles")?wash:"none"}" fill-opacity=".75" stroke="${ink}" stroke-width=".7"/>`; }).join("");
+  const walls = has("concrete")
+    ? `<circle cx="${T.x}" cy="${T.y}" r="${r}" fill="${paper}" stroke="${ink}" stroke-width="2.6"/><circle cx="${T.x}" cy="${T.y}" r="${r-3}" fill="none" stroke="${ink}" stroke-width=".8"/>`
+    : has("wall") ? `<circle cx="${T.x}" cy="${T.y}" r="${r}" fill="${paper}" stroke="${ink}" stroke-width="1.8"/>`
+    : `<circle cx="${T.x}" cy="${T.y}" r="${r}" fill="${paper}" stroke="${ink}" stroke-width="1.2" stroke-dasharray="5 4"/>`;
+  const towers = has("wallTowers") ? [0,1,2,3,4,5].map(i=>{ const a=i*Math.PI/3+.3; return `<circle cx="${T.x+Math.cos(a)*r}" cy="${T.y+Math.sin(a)*r}" r="3" fill="${paper}" stroke="${ink}"/>`; }).join("") : "";
+  const heart = `${has("domeHall")?`<path d="M${T.x-7},${T.y+3} a7,7 0 0 1 14,0 z" fill="${wash}" fill-opacity=".6" stroke="${ink}" stroke-width="1.2"/>`:`<rect x="${T.x-4}" y="${T.y-3}" width="8" height="6" fill="none" stroke="${ink}"/>`}`;
+  const town = `${walls}${houses}${heart}${towers}<text x="${T.x}" y="${T.y+r+15}" text-anchor="middle" font-size="15" font-weight="700">Brackenfold</text>`;
+
+  /* ---- the border around everything that is Brackenfold's ---- */
+  const pts=[]; const ring=(cx,cy,rx,ry)=>{ for(let a=0;a<14;a++){ const t=a*Math.PI/7; pts.push([cx+rx*Math.cos(t), cy+ry*Math.sin(t)]); } };
+  ring(T.x,T.y,r+16,r+12); owned.forEach(k=>{ const R=REGIONS[k]; ring(R.x,R.y,R.rx+7,R.ry+7); });
+  const Hh=hullOf(pts).map(([x,y])=>[Math.max(3,Math.min(397,x)),Math.max(3,Math.min(285,y))]);
+  const border=`<path d="M${Hh.map(p=>p.map(v=>v.toFixed(1)).join(",")).join(" L")} Z" fill="${wash}" fill-opacity=".07" stroke="${ink}" stroke-width="1.8" stroke-dasharray="7 4" stroke-linejoin="round"/>`;
+
+  const people = owned.reduce((t,k)=>t+(PROJECTS[k].housing||0),0);
+  return `<div class="survey" role="img" aria-label="Map of Brackenfold and its ${owned.length} lands">
+  <svg viewBox="0 0 400 290">
+    <defs><filter id="${uid}"><feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="2"/></filter></defs>
+    <g filter="url(#${uid})">${hills}${woods}${river}${westRoad}${border}${roads}${lands}${town}${far}</g>
+    <text x="10" y="284" font-size="12">Lands of Brackenfold · ${owned.length} claimed${people?` · ${people} homes beyond the walls`:""}</text>
+    <text x="372" y="18" font-size="13">N ↑</text>
   </svg></div>`;
 }
 
@@ -4556,7 +4795,10 @@ function drawSheet(){
     ${row("food","Food")}${row("defense","Defense")}${row("prosperity","Prosperity")}${row("morale","Morale")}
     <h3 style="margin-top:14px">STORES</h3>
     ${row("timber","Timber")}${row("stone","Stone")}${row("coin","Coin")}
+    <div class="note">Mode: ${S.mode==="builder"?"Builder":S.mode==="story"?"Story":"Classic"} · Slot ${SLOT}</div>
     <div class="note">People: ${S.pop}/${housing()} · Works: ${works()} · ${tier().name}</div>
+    ${(S.guildHistory||[]).length?`<h3 style="margin-top:14px">BUILDERS' GUILD · RECENT WORK</h3>${S.guildHistory.slice(0,6).map(h=>`<div class="note"><b style="color:var(--paper)">${h.when}</b> · ${h.ent.map(e=>e.what).join(" · ")}</div>`).join("")}`:""}
+    <div class="note">Improved buildings: ${Object.values(S.levels||{}).filter(v=>v>0).length} · ${Object.values(S.levels||{}).reduce((a,b)=>a+b,0)} improvements</div>
     <div class="note">Lands: ${claims().length?claims().map(k=>REGIONS[k].name).join(", "):"only the old town"}</div>
     ${F("metNobles")?`<div class="note">Caelan Ardane ${"◆".repeat(Math.min(5,F("aff_caelan")||0))} · Isolde Varrin ${"◆".repeat(Math.min(5,F("aff_isolde")||0))}${F("romance")?` · romance: ${F("romance")==="caelan"?"Caelan":"Isolde"}`:""}</div>`:""}
     ${F("fen")?`<div class="note">Apprentice: Fen${F("fenJourneyman")?" (Journeyman)":""}${F("fenListening")?" · Listening":""}${F("fenReshape")?" · Reshape":""}</div>`:""}
@@ -4599,11 +4841,13 @@ function drawChapters(){
   box.innerHTML=`<div class="sheet chapters"><h3>BOOK ONE · TEN CHAPTERS</h3>${BOOK_ONE.map((c,ix)=>{
     const st = done(c.id) ? "Complete" : c.id===S.chapter ? "Playing" : "Ahead";
     return `<div class="chap ${c.id===S.chapter?"now":""} ${c.id>S.chapter?"soon":""}"><div class="chap-n">${ROM[ix]}</div>
-      <div class="chap-body"><b>${c.t}</b><span>${c.season} · ${st}</span><p>${c.line}</p></div></div>`;}).join("")}</div>`;
+      <div class="chap-body"><b>${c.t}</b><span>${c.season} · ${st}</span><p>${c.line}</p>${(c.id<S.chapter||done(c.id))&&hasCheckpoint(c.id)?`<button type="button" class="ghost replay" data-replay="${c.id}">Replay from the start of this chapter</button>`:""}</div></div>`;}).join("")}</div>`;
+  bindReplay();
 }
 function refreshPanels(){
   if(!document.getElementById("chaptersBox").hidden) drawChapters();
   if(!document.getElementById("marksBox").hidden) drawMarks();
+  if(!document.getElementById("savesBox").hidden) drawSaves();
   if(!document.getElementById("codexBox").hidden) drawCodex();
   if(!document.getElementById("sheetBox").hidden) drawSheet();
   const m=document.getElementById("mapBox");
@@ -4613,22 +4857,300 @@ function toggle(btnId,boxId){
   const box=document.getElementById(boxId), b=document.getElementById(btnId);
   box.hidden=!box.hidden; b.setAttribute("aria-pressed",!box.hidden); refreshPanels();
 }
-function save(){ try{ localStorage.setItem("fie_save_v12",JSON.stringify(S)); }catch(e){} }
-function load(){ try{ const d=JSON.parse(localStorage.getItem("fie_save_v12")); return d&&d.stats&&d.built&&d.assign&&d.codex&&d.counts&&d.chapter?d:null; }catch(e){ return null; } }
+function save(){ lsSet(slotKey(SLOT), JSON.stringify(S)); lsSet("fie_active", String(SLOT)); }
+function load(){
+  try{
+    SLOT = +(localStorage.getItem("fie_active")||1) || 1;
+    let d = JSON.parse(localStorage.getItem("fie_slot_"+SLOT));
+    // carry an older single save into slot 1 the first time
+    if(!d && SLOT===1){ d = JSON.parse(localStorage.getItem("fie_save_v12")); }
+    return d&&d.stats&&d.built&&d.assign&&d.codex&&d.counts&&d.chapter?d:null;
+  }catch(e){ return null; }
+}
 
 document.getElementById("btnStats").onclick=()=>toggle("btnStats","sheetBox");
 document.getElementById("btnMap").onclick=()=>toggle("btnMap","mapBox");
 document.getElementById("btnCodex").onclick=()=>toggle("btnCodex","codexBox");
 document.getElementById("btnChapters").onclick=()=>toggle("btnChapters","chaptersBox");
 document.getElementById("btnMarks").onclick=()=>toggle("btnMarks","marksBox");
-document.getElementById("btnRestart").onclick=()=>{ S=START(); render(); };
+document.getElementById("btnSaves").onclick=()=>toggle("btnSaves","savesBox");
+document.getElementById("btnSound").onclick=()=>setSound(!AUDIO.on);
+/* ======================= SAVE SLOTS AND CHAPTER REPLAY ======================= */
+const SLOTS=3;
+const slotKey = n => "fie_slot_"+n;
+const cpKey = (n,id) => `fie_cp_${n}_${id}`;
+const CH_OPEN = {1:"ceremony",2:"c2open",3:"c3open",4:"c4open",4.5:"c45open",5:"c5open",5.5:"c55open",6:"c6open",6.5:"c65open",7:"c7open"};
+const OPEN_CH = Object.fromEntries(Object.entries(CH_OPEN).map(([k,v])=>[v,+k]));
+function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,v); return true; }catch(e){ return false; } }
+function lsDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
+function validSave(d){ return d&&d.stats&&d.built&&d.assign&&d.codex&&d.counts&&d.chapter?d:null; }
+function readSlot(n){ try{ return validSave(JSON.parse(lsGet(slotKey(n)))); }catch(e){ return null; } }
+function saveCheckpoint(id){ lsSet(cpKey(SLOT,id), JSON.stringify(S)); }
+function hasCheckpoint(id){ return !!lsGet(cpKey(SLOT,id)); }
+function replayChapter(id){
+  let d=null; try{ d=JSON.parse(lsGet(cpKey(SLOT,id))); }catch(e){}
+  if(!d) return;
+  S=d; S.scene=CH_OPEN[id]; S.newMarks=null; S.showLocked=false;
+  const sc=SCENES[S.scene]; if(id!==1 && sc && sc.enter) sc.enter();
+  closePanels(); render();
+}
+function slotSummary(n){
+  const d=readSlot(n);
+  if(!d) return {empty:true, line:"Empty"};
+  const where = d.scene==="create" ? "Not started" : `Chapter ${CH_NAME[d.chapter]||"One"}${d.week?` · week ${d.week}`:d.day?` · day ${d.day}`:""}`;
+  return {empty:false, line:`${esc(d.name||"Unnamed")} · ${where} · ${d.mode==="builder"?"Builder":d.mode==="story"?"Story":"Classic"}`};
+}
+function drawSaves(){
+  const box=document.getElementById("savesBox");
+  const rows=Array.from({length:SLOTS},(_,i)=>{ const n=i+1, info=slotSummary(n), act=n===SLOT;
+    return `<div class="slot ${act?"now":""}"><div class="slot-info"><b>Slot ${n}${act?" · playing":""}</b><span>${info.line}</span></div>
+      <div class="slot-btns">${act?"":`<button type="button" class="ghost" data-slot="play" data-n="${n}">${info.empty?"New story":"Play"}</button>`}
+      ${info.empty||act?"":`<button type="button" class="ghost" data-slot="clear" data-n="${n}">Clear</button>`}</div></div>`;}).join("");
+  box.innerHTML=`<div class="sheet"><h3>SAVES · EACH SLOT AUTOSAVES</h3>${rows}
+    <div class="slot-new"><button type="button" class="ghost" data-slot="restart">Start a new story in this slot</button>
+    <span class="note">Finished chapters can be replayed from the Chapters panel.</span></div></div>`;
+  box.querySelectorAll("[data-slot]").forEach(b=>b.onclick=()=>{
+    const a=b.dataset.slot, n=+b.dataset.n;
+    if((a==="clear"||a==="restart") && !b.dataset.armed){ b.dataset.armed="1"; b.textContent="Tap again to confirm"; return; }
+    if(a==="play"){ save(); SLOT=n; lsSet("fie_active",String(n)); S=readSlot(n)||START(); syncCodex(); closePanels(); render(); }
+    if(a==="clear"){ lsDel(slotKey(n)); Object.keys(CH_OPEN).forEach(id=>lsDel(cpKey(n,id))); drawSaves(); }
+    if(a==="restart"){ const m=S.mode; S=START(); S.mode=m; Object.keys(CH_OPEN).forEach(id=>lsDel(cpKey(SLOT,id))); closePanels(); render(); }
+  });
+}
+function bindReplay(){
+  document.querySelectorAll("#chaptersBox [data-replay]").forEach(b=>b.onclick=()=>{
+    if(!b.dataset.armed){ b.dataset.armed="1"; b.textContent="Tap again: this replaces your progress in this slot"; return; }
+    replayChapter(+b.dataset.replay);
+  });
+}
+function closePanels(){
+  ["mapBox","sheetBox","codexBox","chaptersBox","marksBox","savesBox"].forEach(id=>{ const el=document.getElementById(id); if(el) el.hidden=true; });
+  ["btnMap","btnStats","btnCodex","btnChapters","btnMarks","btnSaves"].forEach(id=>{ const el=document.getElementById(id); if(el) el.setAttribute("aria-pressed","false"); });
+}
+
+/* ======================= DIFFICULTY ======================= */
+const modeMul = () => S.mode==="story" ? 1.5 : S.mode==="builder" ? 0.8 : 1;
+const modeNeed = () => S.mode==="builder" ? 1.25 : 1;
+
+/* ======================= CHARACTER PORTRAITS =======================
+   Original ink-style portraits, drawn in code. One recipe per character. */
+const CAST = {
+  bren:   {n:"Bren", skin:"#d9b38c", hair:"#dedad2", style:"thin", eye:"#5a4a3a", age:2, beard:"full", cloth:"#6b5a44", bg:"#cdb98f", brow:"kind"},
+  fen:    {n:"Fen", skin:"#ecc8a2", hair:"#8a5a2b", style:"messy", eye:"#5f8a45", cloth:"#7a6a50", bg:"#d8c79c", brow:"soft", young:true},
+  wren:   {n:"Wren", skin:"#d7b896", hair:"#2f3a2a", style:"hood", eye:"#79b862", cloth:"#3e4a34", bg:"#b9c29a", brow:"flat"},
+  tamsin: {n:"Tamsin", skin:"#c99a72", hair:"#b5532e", style:"tied", eye:"#3d6f8f", cloth:"#6b4a2e", bg:"#d9b88c", brow:"arch", scar:true},
+  seren:  {n:"Seren", skin:"#f0d0b0", hair:"#8a1f1f", style:"short", eye:"#d08a2a", cloth:"#7a1e1e", bg:"#e0b49a", brow:"fierce", ember:true},
+  caelan: {n:"Caelan", skin:"#e9cdb0", hair:"#1f2f4a", style:"soft", eye:"#3f7fb0", cloth:"#2e4f7a", bg:"#b8c9d6", brow:"soft", ink:true},
+  isolde: {n:"Isolde", skin:"#f2d9c4", hair:"#d4d4dc", style:"long", eye:"#6f6fb8", cloth:"#55586a", bg:"#c6c6d8", brow:"arch", spark:true},
+  oda:    {n:"Oda", skin:"#b88560", hair:"#2a2a2a", style:"braid", eye:"#4a3a2a", cloth:"#4e5b3a", bg:"#c3c49a", brow:"flat"},
+  garth:  {n:"Garth", skin:"#d6a983", hair:"#5a3a1e", style:"cropped", eye:"#4a3a2a", cloth:"#6a4a2a", bg:"#cfb08a", brow:"heavy", beard:"full"},
+  pell:   {n:"Granny Pell", skin:"#e2c2a6", hair:"#f0efec", style:"bun", eye:"#5a5a6a", cloth:"#7a5a7a", bg:"#d6c0cc", brow:"arch", age:3},
+  marisol:{n:"Marisol", skin:"#c79f7c", hair:"#dcdcdc", style:"cropped", eye:"#4a6a6a", cloth:"#6a6a5a", bg:"#c4c2b0", brow:"flat", age:3},
+  quill:  {n:"Maelor Quill", skin:"#cfa684", hair:"#bdbdbd", style:"swept", eye:"#8a8a8a", cloth:"#4a3a2a", bg:"#b8ad9c", brow:"heavy", age:1, collar:true, burn:true},
+  hale:   {n:"Magister Hale", skin:"#e6d2c0", hair:"#34343c", style:"slick", eye:"#9ab0c8", cloth:"#6e7680", bg:"#c2ccd6", brow:"fierce", frost:true},
+  morrow: {n:"Archmagister Morrow", skin:"#e0c8b0", hair:"#f2f2f2", style:"thin", eye:"#c8ccd0", cloth:"#5a6070", bg:"#c9ccd4", brow:"kind", age:3, beard:"long", blind:true},
+  vane:   {n:"Idris Vane", skin:"#e2c4a4", hair:"#4a3a2a", style:"neat", eye:"#5a4a3a", cloth:"#3a3a3a", bg:"#cbc4b4", brow:"flat", spectacles:true},
+  edric:  {n:"Lord Edric", skin:"#e0bf9e", hair:"#9a9a9a", style:"swept", eye:"#5a5a5a", cloth:"#7a1e1e", bg:"#d0b0a4", brow:"heavy", age:2, beard:"short"},
+  aurel:  {n:"Aurel Valcrest", skin:"#dcb894", hair:"#6a4a2a", style:"messy", eye:"#c8a050", cloth:"#5a4a3a", bg:"#d8c49a", brow:"kind", beard:"stubble"},
+  marren: {n:"Ilse Marren", skin:"#d8b090", hair:"#1e1e1e", style:"tied", eye:"#3a5a3a", cloth:"#2a4a2a", bg:"#b4c2a8", brow:"flat"},
+  nell:   {n:"Nell", skin:"#ead0b8", hair:"#c08a4a", style:"messy", eye:"#6a5a8a", cloth:"#5a5a5a", bg:"#cfc2b8", brow:"soft", young:true},
+  halla:  {n:"Captain Halla", skin:"#c08a62", hair:"#d8b060", style:"cropped", eye:"#4a6a8a", cloth:"#5a4a3a", bg:"#d4bf94", brow:"fierce"},
+  tobin:  {n:"Tobin", skin:"#e4c6a6", hair:"#a07a50", style:"thin", eye:"#5a4a3a", cloth:"#9a9488", bg:"#e0d8c6", brow:"kind", beard:"short", flour:true},
+  adeline:{n:"Adeline Hart", skin:"#e8c8a8", hair:"#5a2e1e", style:"bun", eye:"#4a5a3a", cloth:"#8a2a22", bg:"#d8b4a4", brow:"flat"}
+};
+/* how each character is found in a scene's text, in order of priority */
+const CAST_MATCH = [
+  ["edric",/\b(Lord Edric|your father|Father)\b/], ["aurel",/\bAurel\b/], ["pell",/\bGranny Pell\b/], ["tobin",/\bTobin\b/],
+  ["bren",/\bBren\b/], ["fen",/\bFen\b/], ["wren",/\bWren\b/], ["tamsin",/\bTamsin\b/], ["seren",/\bSeren\b/],
+  ["caelan",/\bCaelan\b/], ["isolde",/\bIsolde\b/], ["oda",/\bOda\b/], ["garth",/\bGarth\b/], ["marisol",/\bMarisol\b/],
+  ["quill",/\bQuill\b/], ["hale",/\bHale\b/], ["morrow",/\bMorrow\b/], ["vane",/\bVane\b/], ["marren",/\bMarren\b/],
+  ["nell",/\bNell\b/], ["halla",/\bHalla\b/], ["adeline",/\bAdeline\b/]
+];
+function castIn(html){
+  const t=String(html).replace(/<[^>]+>/g," ");
+  return CAST_MATCH.map(([id,re])=>{ const m=t.match(re); return m?[id,m.index]:null; }).filter(Boolean)
+    .sort((a,b)=>a[1]-b[1]).slice(0,3).map(x=>x[0]);
+}
+function shade(hex,amt){ const n=parseInt(hex.slice(1),16); let r=(n>>16)+amt, g=((n>>8)&255)+amt, b=(n&255)+amt;
+  r=Math.max(0,Math.min(255,r)); g=Math.max(0,Math.min(255,g)); b=Math.max(0,Math.min(255,b)); return "#"+((r<<16)|(g<<8)|b).toString(16).padStart(6,"0"); }
+function portrait(id){
+  const c=CAST[id]; const ink="#2e261a", skin=c.skin, hair=c.hair, hd=shade(hair,-35), sk=shade(skin,-28);
+  const cloth = id==="tamsin"&&F("tamsinGeneral") ? "#2f4a6e" : c.cloth;
+  const P=[];
+  // backdrop: a manhwa panel with a soft radial wash
+  P.push(`<rect width="100" height="120" fill="${c.bg}"/><circle cx="50" cy="52" r="46" fill="${shade(c.bg,18)}"/>`);
+  // hair that sits behind the head
+  const back={
+    long:`<path d="M24,46 Q20,16 50,14 Q80,16 76,46 L82,104 Q68,98 66,72 L34,72 Q32,98 18,104 Z" fill="${hair}" stroke="${ink}" stroke-width="1.3"/>`,
+    braid:`<path d="M27,44 Q24,18 50,16 Q76,18 73,44 Z" fill="${hair}" stroke="${ink}" stroke-width="1.3"/>${[0,1,2,3,4].map(i=>`<ellipse cx="${72-i*0.5}" cy="${62+i*9}" rx="5" ry="5.5" fill="${hair}" stroke="${ink}" stroke-width="1.1"/>`).join("")}`,
+    tied:`<path d="M27,44 Q24,18 50,16 Q76,18 73,44 Z" fill="${hair}" stroke="${ink}" stroke-width="1.3"/><path d="M68,30 Q86,38 80,66 Q76,52 70,42 Z" fill="${hair}" stroke="${ink}" stroke-width="1.2"/>`,
+    bun:`<circle cx="50" cy="15" r="9" fill="${hair}" stroke="${ink}" stroke-width="1.3"/>`,
+    hood:`<path d="M18,78 Q14,22 50,10 Q86,22 82,78 Q74,70 70,48 Q66,28 50,26 Q34,28 30,48 Q26,70 18,78 Z" fill="${shade(cloth,10)}" stroke="${ink}" stroke-width="1.4"/>`
+  }[c.style]||"";
+  // shoulders and clothes
+  P.push(`<path d="M6,120 Q10,92 36,86 L64,86 Q90,92 94,120 Z" fill="${cloth}" stroke="${ink}" stroke-width="1.4"/>`);
+  P.push(`<path d="M40,86 L50,100 L60,86" fill="none" stroke="${shade(cloth,-30)}" stroke-width="1.4"/>`);
+  if(id==="tamsin"&&F("tamsinGeneral")) P.push(`<path d="M36,88 L44,98 M64,88 L56,98" stroke="#d8dde6" stroke-width="2.4"/>`);
+  if(c.frost) P.push(`<path d="M28,104 l3,-3 m-3,0 l3,3 M70,100 l3,-3 m-3,0 l3,3" stroke="#e8f2ff" stroke-width="1" fill="none" opacity=".8"/>`);
+  P.push(back);
+  // neck
+  P.push(`<path d="M42,70 L42,88 Q50,93 58,88 L58,70 Z" fill="${sk}" stroke="${ink}" stroke-width="1.2"/>`);
+  if(c.collar) P.push(`<path d="M40,84 Q50,90 60,84" fill="none" stroke="#6a6a6a" stroke-width="4"/><path d="M40,84 Q50,90 60,84" fill="none" stroke="${ink}" stroke-width="1"/><path d="M58,85 l4,6" stroke="#6a6a6a" stroke-width="2"/>`);
+  // ears and face
+  if(c.style!=="hood") P.push(`<ellipse cx="29.5" cy="50" rx="3.6" ry="6" fill="${skin}" stroke="${ink}" stroke-width="1.2"/><ellipse cx="70.5" cy="50" rx="3.6" ry="6" fill="${skin}" stroke="${ink}" stroke-width="1.2"/>`);
+  const chin = c.young ? "Q50,80 66,68" : c.age ? "Q50,80 67,70" : "Q50,81 67,69";
+  P.push(`<path d="M31,44 Q30,66 ${c.young?"34,68":"33,69"} Q50,${c.young?79:81} ${c.young?"66,68":"67,69"} Q70,66 69,44 Q68,24 50,23 Q32,24 31,44 Z" fill="${skin}" stroke="${ink}" stroke-width="1.5"/>`);
+  P.push(`<path d="M36,62 Q42,66 46,63 M54,63 Q58,66 64,62" fill="none" stroke="${sk}" stroke-width="1.1" opacity=".6"/>`);
+  // eyes: large, manhwa proportions
+  const eye=(x,flip)=>{ if(c.blind) return `<path d="M${x-6},51 Q${x},48 ${x+6},51" fill="none" stroke="${ink}" stroke-width="1.6"/><path d="M${x-5},52 Q${x},54.5 ${x+5},52" fill="none" stroke="${ink}" stroke-width="1"/>`;
+    const h=c.young?6.4:5.6;
+    return `<path d="M${x-6.5},51 Q${x},${51-h} ${x+6.5},51 Q${x},${55.2} ${x-6.5},51 Z" fill="#fbf7ee" stroke="none"/>
+      <circle cx="${x}" cy="51.2" r="3.3" fill="${c.eye}"/><circle cx="${x}" cy="51.2" r="1.6" fill="${ink}"/><circle cx="${x+(flip?-1.2:1.2)}" cy="50" r="1" fill="#fff"/>
+      <path d="M${x-7},51 Q${x},${50-h} ${x+7},51" fill="none" stroke="${ink}" stroke-width="2"/><path d="M${x-5},53.6 Q${x},55.4 ${x+5},53.6" fill="none" stroke="${ink}" stroke-width=".7" opacity=".6"/>`; };
+  P.push(eye(41,false)+eye(59,true));
+  if(c.spectacles) P.push(`<circle cx="41" cy="51" r="7.4" fill="none" stroke="${ink}" stroke-width="1.2"/><circle cx="59" cy="51" r="7.4" fill="none" stroke="${ink}" stroke-width="1.2"/><path d="M48.4,50 Q50,48.6 51.6,50" fill="none" stroke="${ink}" stroke-width="1.2"/>`);
+  // brows tell the temperament
+  const B={kind:["M34,43.5 Q41,41 47,43","M53,43 Q59,41 66,43.5"], soft:["M34,43 Q41,40.5 47,42.4","M53,42.4 Q59,40.5 66,43"], flat:["M34,43 L47,42.6","M53,42.6 L66,43"],
+           arch:["M34,44 Q40,39 47,42","M53,42 Q60,39 66,44"], fierce:["M34,41.5 L47,44.4","M53,44.4 L66,41.5"], heavy:["M33,42.5 Q41,40.5 47,43.6","M53,43.6 Q59,40.5 67,42.5"]}[c.brow];
+  P.push(`<path d="${B[0]} ${B[1]}" fill="none" stroke="${c.age>=2?shade(hair,-60):hd}" stroke-width="${c.brow==="heavy"?2.8:2.1}" stroke-linecap="round"/>`);
+  // nose and mouth
+  P.push(`<path d="M50.5,55 Q49,61.5 51.6,62.4" fill="none" stroke="${ink}" stroke-width="1.1" stroke-linecap="round"/>`);
+  P.push(`<path d="${c.brow==="fierce"||c.brow==="flat"?"M45.5,69.2 Q50,69.8 54.5,69.2":"M45,68.6 Q50,71.4 55,68.6"}" fill="none" stroke="${ink}" stroke-width="1.3" stroke-linecap="round"/>`);
+  // age
+  if(c.age) P.push(`<path d="M32.5,51 l-2.4,-1 M32.6,53.4 l-2.4,.4 M67.4,51 l2.4,-1 M67.4,53.4 l2.4,.4" stroke="${ink}" stroke-width=".8" opacity=".7"/>`);
+  if(c.age>=2) P.push(`<path d="M40,36.6 Q50,35 60,36.6 M42,39 Q50,38 58,39" fill="none" stroke="${ink}" stroke-width=".7" opacity=".55"/><path d="M39,64 Q38,67 40,69 M61,64 Q62,67 60,69" fill="none" stroke="${ink}" stroke-width=".8" opacity=".6"/>`);
+  // beards
+  const beard={full:`<path d="M32,60 Q33,84 50,88 Q67,84 68,60 Q64,72 58,73 Q50,77 42,73 Q36,72 32,60 Z" fill="${hair}" stroke="${ink}" stroke-width="1.2"/><path d="M44,70.5 Q50,73 56,70.5" fill="none" stroke="${ink}" stroke-width="1.2"/>`,
+    long:`<path d="M33,62 Q34,98 50,106 Q66,98 67,62 Q62,74 56,74 Q50,78 44,74 Q38,74 33,62 Z" fill="${hair}" stroke="${ink}" stroke-width="1.2"/><path d="M44,71 Q50,73.6 56,71" fill="none" stroke="${ink}" stroke-width="1.2"/><path d="M46,84 v12 M54,84 v12" stroke="${shade(hair,-40)}" stroke-width=".8"/>`,
+    short:`<path d="M35,64 Q37,79 50,82 Q63,79 65,64 Q60,72 50,73 Q40,72 35,64 Z" fill="${hair}" stroke="${ink}" stroke-width="1.1"/><path d="M45,70 Q50,72.4 55,70" fill="none" stroke="${ink}" stroke-width="1.2"/>`,
+    stubble:`<g fill="${shade(hair,-20)}" opacity=".55">${Array.from({length:26},(_,i)=>`<circle cx="${38+(i*7)%25}" cy="${66+(i*5)%12}" r=".55"/>`).join("")}</g>`}[c.beard]||"";
+  P.push(beard);
+  // marks: scars, burns, ink, embers, sparks, flour
+  if(c.scar) P.push(`<path d="M62,55 l5,7" stroke="${shade(skin,-50)}" stroke-width="1.3" stroke-linecap="round"/>`);
+  if(c.burn) P.push(`<path d="M33,58 q3,-2 5,1 q2,3 -1,5" fill="${shade(skin,-22)}" stroke="none"/>`);
+  if(c.ink) P.push(`<ellipse cx="62" cy="62" rx="2.4" ry="1.2" fill="#2a3a5a" opacity=".55"/>`);
+  if(c.ember) P.push(`<path d="M34,66 q1,-3 2,0 q1,2 -1,3 z M64,67 q1,-3 2,0 q1,2 -1,3 z" fill="#e0882a"/>`);
+  // hair in front
+  const front={
+    short:`<path d="M30,44 Q28,20 50,19 Q72,20 70,44 Q66,32 58,34 Q55,28 48,32 Q40,28 36,35 Q32,36 30,44 Z" fill="${hair}" stroke="${ink}" stroke-width="1.3"/>`,
+    messy:`<path d="M29,46 Q24,30 32,24 Q34,14 44,16 Q50,8 58,15 Q68,12 70,22 Q78,28 71,46 Q68,34 62,36 Q60,28 54,33 Q50,26 45,33 Q40,28 37,36 Q32,34 29,46 Z" fill="${hair}" stroke="${ink}" stroke-width="1.3"/>`,
+    long:`<path d="M30,48 Q27,20 50,18 Q73,20 70,48 Q68,32 56,30 Q54,38 44,36 Q36,34 30,48 Z" fill="${hair}" stroke="${ink}" stroke-width="1.3"/>`,
+    tied:`<path d="M30,44 Q29,21 50,19 Q71,21 70,44 Q66,30 50,29 Q34,30 30,44 Z" fill="${hair}" stroke="${ink}" stroke-width="1.3"/><path d="M40,23 Q50,20 60,23" fill="none" stroke="${hd}" stroke-width=".8"/>`,
+    braid:`<path d="M30,44 Q29,21 50,19 Q71,21 70,44 Q62,30 52,30 Q50,24 47,30 Q36,30 30,44 Z" fill="${hair}" stroke="${ink}" stroke-width="1.3"/>`,
+    bun:`<path d="M30,44 Q29,21 50,20 Q71,21 70,44 Q66,30 50,28 Q34,30 30,44 Z" fill="${hair}" stroke="${ink}" stroke-width="1.3"/><path d="M38,26 Q50,23 62,26" fill="none" stroke="${hd}" stroke-width=".8"/>`,
+    thin:`<path d="M30,46 Q29,34 33,28 Q31,40 33,46 Z M70,46 Q71,34 67,28 Q69,40 67,46 Z" fill="${hair}" stroke="${ink}" stroke-width="1.1"/><path d="M38,26 Q50,22 62,26" fill="none" stroke="${hair}" stroke-width="2.4" opacity=".7"/>`,
+    swept:`<path d="M30,44 Q28,20 50,18 Q74,19 71,44 Q70,30 60,27 Q48,24 38,29 Q32,33 30,44 Z" fill="${hair}" stroke="${ink}" stroke-width="1.3"/><path d="M38,24 Q52,20 66,26 M40,27 Q52,23 64,29" fill="none" stroke="${hd}" stroke-width=".8"/>`,
+    slick:`<path d="M30,44 Q29,21 50,20 Q71,21 70,44 Q68,30 50,27 Q32,30 30,44 Z" fill="${hair}" stroke="${ink}" stroke-width="1.3"/><path d="M50,20 Q46,24 45,28" fill="none" stroke="${shade(hair,40)}" stroke-width="1"/>`,
+    cropped:`<path d="M31,42 Q30,22 50,21 Q70,22 69,42 Q66,30 50,28 Q34,30 31,42 Z" fill="${hair}" stroke="${ink}" stroke-width="1.2"/>`,
+    soft:`<path d="M30,46 Q27,20 50,18 Q73,20 70,46 Q68,36 62,34 Q60,40 54,36 Q50,42 46,36 Q42,40 38,34 Q32,36 30,46 Z" fill="${hair}" stroke="${ink}" stroke-width="1.3"/>`,
+    neat:`<path d="M30,44 Q29,21 50,20 Q71,21 70,44 Q68,30 56,28 L54,24 Q44,26 36,30 Q32,34 30,44 Z" fill="${hair}" stroke="${ink}" stroke-width="1.3"/>`,
+    hood:`<path d="M30,48 Q30,30 50,28 Q70,30 70,48 Q64,36 50,35 Q36,36 30,48 Z" fill="${hair}" stroke="${ink}" stroke-width="1.1"/><path d="M26,60 Q24,24 50,18 Q76,24 74,60" fill="none" stroke="${ink}" stroke-width="1.4"/>`
+  }[c.style]||"";
+  P.push(front);
+  if(c.flour) P.push(`<path d="M40,24 q3,-2 6,0 M56,24 q3,-2 5,1" stroke="#fbfbf6" stroke-width="2.4" stroke-linecap="round" fill="none"/>`);
+  if(c.spark) P.push(`<path d="M66,24 l-4,7 h4 l-4,7" fill="none" stroke="#6fd3ff" stroke-width="1.6" stroke-linejoin="round"/>`);
+  return `<svg viewBox="0 0 100 120" role="img" aria-label="${c.n}">${P.join("")}<rect width="100" height="120" fill="none" stroke="${ink}" stroke-width="2"/></svg>`;
+}
+const NO_CAST = ["plan","built","create"];
+function castStrip(html){
+  if(NO_CAST.includes(S.scene)) return "";
+  const ids=castIn(html); if(!ids.length) return "";
+  return `<div class="cast">${ids.map(id=>`<figure>${portrait(id)}<figcaption>${CAST[id].n}</figcaption></figure>`).join("")}</div>`;
+}
+
+/* ======================= MUSIC AND SOUND =======================
+   Everything is generated live with the Web Audio API: no audio files. */
+const AUDIO={ctx:null, master:null, music:null, on:false, timer:null, mood:null, lastScene:null, step:0};
+try{ AUDIO.on = lsGet("fie_sound")==="on"; }catch(e){}
+const MOODS={
+  hearth:{root:220.00, scale:[0,2,4,7,9], beat:1.9, pad:[0,7,16]},   // home, building
+  winter:{root:196.00, scale:[0,2,3,7,10], beat:2.6, pad:[0,7,15]},
+  court: {root:246.94, scale:[0,2,4,5,7,9,11], beat:1.6, pad:[0,4,7]},
+  sea:   {root:174.61, scale:[0,2,5,7,9], beat:2.2, pad:[0,7,14]},
+  storm: {root:146.83, scale:[0,1,3,7,8], beat:1.1, pad:[0,3,7]},    // crises
+  dream: {root:261.63, scale:[0,4,7,11,14], beat:3.0, pad:[0,7,11]}
+};
+function curMood(){
+  if(["siege4","dome5","foundry6","storm7","ktest","tide","trial","expedition","exam"].includes(S.phase) || /^(siege|s4|outcome|dome|foundry|storm|ktest|tide|trial|thorn[123])/.test(S.scene)) return "storm";
+  if(/^(codexDream|codexWhy|codexAngry|aurelWarns|aurelFall|g7aurel|wrenFont|keystoneReveal)/.test(S.scene)) return "dream";
+  if(S.phase==="saelmar"||S.chapter===5.5) return "sea";
+  if(S.phase==="capital"||S.phase==="kingsroad"||S.phase==="charter") return "court";
+  if(isWinter()||S.chapter===2||S.chapter===5&&S.phase==="winter") return "winter";
+  return "hearth";
+}
+function audioInit(){
+  if(AUDIO.ctx) return true;
+  const C=window.AudioContext||window.webkitAudioContext; if(!C) return false;
+  try{ AUDIO.ctx=new C(); }catch(e){ return false; }
+  AUDIO.master=AUDIO.ctx.createGain(); AUDIO.master.gain.value=.55; AUDIO.master.connect(AUDIO.ctx.destination);
+  AUDIO.music=AUDIO.ctx.createGain(); AUDIO.music.gain.value=.32;
+  const lp=AUDIO.ctx.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=1800;
+  AUDIO.music.connect(lp); lp.connect(AUDIO.master);
+  return true;
+}
+function note(freq, dur, opt={}){
+  const a=AUDIO.ctx, t=a.currentTime+(opt.at||0), o=a.createOscillator(), g=a.createGain();
+  o.type=opt.type||"sine"; o.frequency.value=freq;
+  const v=opt.vol||.2, att=opt.attack||.01;
+  g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(v,t+att); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g); g.connect(opt.bus||AUDIO.master); o.start(t); o.stop(t+dur+.05);
+}
+function noise(dur, opt={}){
+  const a=AUDIO.ctx, len=Math.floor(a.sampleRate*dur), buf=a.createBuffer(1,len,a.sampleRate), d=buf.getChannelData(0);
+  for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,opt.decay||3);
+  const s=a.createBufferSource(), g=a.createGain(), f=a.createBiquadFilter();
+  f.type=opt.filter||"bandpass"; f.frequency.value=opt.freq||1200; g.gain.value=opt.vol||.3;
+  s.buffer=buf; s.connect(f); f.connect(g); g.connect(AUDIO.master); s.start(a.currentTime+(opt.at||0));
+}
+function sfx(kind){
+  if(!AUDIO.on||!AUDIO.ctx) return;
+  if(kind==="build"){ noise(.12,{freq:900,vol:.35}); note(110,.25,{type:"triangle",vol:.25}); noise(.1,{freq:1400,vol:.25,at:.18}); note(98,.2,{type:"triangle",vol:.18,at:.18}); }
+  if(kind==="turn"){ noise(.08,{freq:2600,vol:.06,decay:2}); }
+  if(kind==="system"){ note(880,.5,{vol:.08}); note(1318.5,.6,{vol:.06,at:.06}); }
+  if(kind==="chapter"){ [0,4,7,12].forEach((s,i)=>note(261.63*Math.pow(2,s/12),1.4,{vol:.12,at:i*.14,type:"triangle"})); }
+  if(kind==="mark"){ [0,7,12,16,19].forEach((s,i)=>note(523.25*Math.pow(2,s/12),1.1,{vol:.08,at:i*.09})); }
+  if(kind==="drum"){ note(55,.9,{type:"sine",vol:.45,attack:.005}); noise(.4,{filter:"lowpass",freq:200,vol:.3}); }
+}
+function musicTick(){
+  if(!AUDIO.on||!AUDIO.ctx) return;
+  const M=MOODS[AUDIO.mood||"hearth"], a=AUDIO.ctx; AUDIO.step++;
+  const hz=s=>M.root*Math.pow(2,s/12);
+  if(AUDIO.step%4===1) M.pad.forEach(s=>note(hz(s)/2, M.beat*4.2, {vol:.05, attack:1.2, bus:AUDIO.music}));
+  if(Math.random()<.72){ const s=M.scale[Math.floor(Math.random()*M.scale.length)]+(Math.random()<.3?12:0); note(hz(s), M.beat*1.6, {type:"triangle", vol:.07, attack:.02, bus:AUDIO.music}); }
+  if(AUDIO.mood==="storm" && AUDIO.step%2===0) note(hz(0)/4, .7, {vol:.18, attack:.005, bus:AUDIO.music});
+  clearTimeout(AUDIO.timer); AUDIO.timer=setTimeout(musicTick, M.beat*1000);
+}
+function setSound(on){
+  AUDIO.on=on; lsSet("fie_sound", on?"on":"off");
+  const b=document.getElementById("btnSound"); if(b){ b.setAttribute("aria-pressed", on); b.textContent = on ? "Sound on" : "Sound off"; }
+  if(on){ if(!audioInit()) return; if(AUDIO.ctx.state==="suspended") AUDIO.ctx.resume(); AUDIO.mood=curMood(); clearTimeout(AUDIO.timer); musicTick(); }
+  else { clearTimeout(AUDIO.timer); if(AUDIO.ctx) AUDIO.ctx.suspend(); }
+}
+function audioOnRender(html){
+  if(!AUDIO.on||!AUDIO.ctx) { AUDIO.lastScene=S.scene; return; }
+  const m=curMood(); if(m!==AUDIO.mood){ AUDIO.mood=m; }
+  if(S.scene!==AUDIO.lastScene){
+    if(S.scene==="built") sfx("build");
+    else if(/^summary/.test(S.scene)) { sfx("chapter"); if(S.newMarks&&S.newMarks.length) setTimeout(()=>sfx("mark"),900); }
+    else if(OPEN_CH[S.scene]!==undefined) sfx("chapter");
+    else if(m==="storm" && AUDIO.lastScene && !/^(siege|s4|dome|foundry|storm|ktest|tide|trial|thorn)/.test(AUDIO.lastScene)) sfx("drum");
+    else if(String(html).includes('class="sys')) sfx("system");
+    else sfx("turn");
+  }
+  AUDIO.lastScene=S.scene;
+}
+document.addEventListener("visibilitychange", ()=>{ if(!AUDIO.ctx) return; if(document.hidden){ clearTimeout(AUDIO.timer); AUDIO.ctx.suspend(); } else if(AUDIO.on){ AUDIO.ctx.resume(); musicTick(); } });
+
 /* ------------------------- INSTALLABLE APP ------------------------- */
 if("serviceWorker" in navigator){ window.addEventListener("load", ()=>navigator.serviceWorker.register("sw.js").catch(()=>{})); }
 let installEvt=null;
 window.addEventListener("beforeinstallprompt", e=>{ e.preventDefault(); installEvt=e; document.getElementById("btnInstall").hidden=false; });
 document.getElementById("btnInstall").onclick=async()=>{ if(!installEvt) return; installEvt.prompt(); await installEvt.userChoice.catch(()=>{}); installEvt=null; document.getElementById("btnInstall").hidden=true; };
 window.addEventListener("appinstalled", ()=>{ document.getElementById("btnInstall").hidden=true; });
+
 syncCodex();
+if(AUDIO.on){ const b=document.getElementById("btnSound"); if(b){ b.textContent="Sound on"; b.setAttribute("aria-pressed","true"); } }
 render();
 </script>
 
